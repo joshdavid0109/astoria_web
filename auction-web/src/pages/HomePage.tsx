@@ -34,11 +34,16 @@ const HomePage: React.FC = () => {
     isLoggedIn,
     toggleWatchlist,
     isInWatchlist,
+    searchQuery,
   } = useAppContext();
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [products, setProducts] = useState<AuctionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const filteredProducts = products.filter((product) =>
+    product.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Load products from Supabase
   useEffect(() => {
@@ -293,7 +298,7 @@ const HomePage: React.FC = () => {
           <p className="text-center text-gray-500">Loading products...</p>
         ) : (
           <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(220px,1fr))] justify-center">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
