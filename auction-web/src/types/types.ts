@@ -1,4 +1,4 @@
-// types.ts - Common type definitions for the auction application
+// types.ts — Clean version that matches real Supabase response
 
 export interface AuctionItem {
   id: string;
@@ -6,17 +6,22 @@ export interface AuctionItem {
   description: string;
   currentBid: number;
   originalPrice?: number;
-  endTime: Date;
-  image: string;
-  category: string;
-  condition: string;
-  location: string;
-  bidCount: number;
-  seller: string;
-  shipping: string;
+
+  // Supabase fields
+  endTime?: Date | null;
+  image: string | null;
+  category: string | null;
+  seller: string | null;
+
+  // Optional fields (because DB does NOT have them)
+  condition?: string;
+  location?: string;
+  bidCount?: number;
+  shipping?: string;
   featured?: boolean;
   watchCount?: number;
-  minBidIncrement: number;
+
+  minBidIncrement?: number;
 }
 
 export interface ProductDetailProps {
@@ -48,10 +53,8 @@ export interface WatchListItem {
   addedAt: Date;
 }
 
-export type PaymentMethod = 'card' | 'cash' | 'mobile';
+export type PaymentMethod = "card" | "cash" | "mobile";
 
-export type AuctionStatus = 'active' | 'ended' | 'upcoming';
+export type AuctionStatus = "active" | "ended" | "upcoming";
 
-export type ItemCondition = 'New' | 'Like New' | 'Good' | 'Fair' | 'Poor';
-
-// You can add more shared types here as your application grows
+export type ItemCondition = "New" | "Like New" | "Good" | "Fair" | "Poor";

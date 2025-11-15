@@ -10,11 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.81.1",
     "@types/react-router-dom": "^5.3.3",
     "lucide-react": "^0.525.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.9.4"
+    "react-router-dom": "^7.9.4",
+    "supabase": "^2.58.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

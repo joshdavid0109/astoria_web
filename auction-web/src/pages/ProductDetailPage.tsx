@@ -1,276 +1,339 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Heart, Clock, MapPin, Star, Package, Truck, Shield } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
-import type { AuctionItem } from '../types/types';
+// src/pages/ProductDetailPage.tsx
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Heart, Star, Clock } from "lucide-react";
+import { useAppContext } from "../context/AppContext";
+import type { AuctionItem } from "../types/types";
+import {
+  getProductById,
+  getProductImages,
+  getAuctionByProductId,
+} from "../services/productService";
 
-// Sample product data (in real app, this would come from API/props)
-const sampleProducts: AuctionItem[] = [
-  {
-    id: '1',
-    title: 'iPhone 14 Pro Max - Storage Unit Find',
-    description: 'Excellent condition iPhone 14 Pro Max found in storage unit. Includes original box and accessories. This device has been tested and is fully functional. Battery health is at 95%. No scratches or dents on the screen or body. Comes with original charging cable and adapter.',
-    currentBid: 850,
-    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
-    image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&h=600&fit=crop',
-    category: 'Electronics',
-    condition: 'Like New',
-    bidCount: 23,
-    seller: 'TechDeals',
-    location: 'New York, NY',
-    shipping: '15',
-    minBidIncrement: 25,
-    featured: true,
-    watchCount: 45
-  }
-];
+const placeholder =
+  "https://via.placeholder.com/800x800?text=No+Image";
 
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addToCart, placeBid, isLoggedIn, toggleWatchlist, isInWatchlist, currentMode } = useAppContext();
-  
-  const [bidAmount, setBidAmount] = useState<number>(0);
-  const [selectedImage, setSelectedImage] = useState(0);
-  
-  // In real app, fetch product by ID
-  const product = sampleProducts.find(p => p.id === id) || sampleProducts[0];
-  
-  const isAuction = currentMode === 'auction';
-  const timeLeft = product.endTime ? Math.max(0, product.endTime.getTime() - Date.now()) : 0;
-  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+  const {
+    addToCart,
+    placeBid,
+    isLoggedIn,
+    toggleWatchlist,
+    isInWatchlist,
+    currentMode,
+  } = useAppContext();
 
+  const [loading, setLoading] = useState(true);
+  const [productRow, setProductRow] = useState<any | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [auctionRow, setAuctionRow] = useState<any | null>(null);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [bidAmount, setBidAmount] = useState<number | "">("");
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        if (!id) {
+          setLoading(false);
+          return;
+        }
+
+        const pid = Number(id);
+
+        const [{ product, error: pErr }, { images: imgs, error: iErr }, { auction, error: aErr }] =
+          await Promise.all([
+            getProductById(pid),
+            getProductImages(pid),
+            getAuctionByProductId(pid),
+          ]);
+
+        if (pErr) {
+          console.error(pErr);
+          setProductRow(null);
+        } else {
+          setProductRow(product);
+        }
+
+        setImages((imgs || []).map((r: any) => r.url).filter(Boolean));
+        if (aErr) {
+          console.error(aErr);
+          setAuctionRow(null);
+        } else {
+          setAuctionRow(auction || null);
+        }
+      } catch (err) {
+        console.error("load product detail error:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [id]);
+
+  const isAuction = useMemo(() => {
+    // prefer auctionRow presence, otherwise productRow.is_auction
+    if (auctionRow) return true;
+    return !!productRow?.is_auction;
+  }, [auctionRow, productRow]);
+
+  // Determine price: auction current_price > product.price
+  const price = useMemo(() => {
+    if (auctionRow && auctionRow.current_price != null) return Number(auctionRow.current_price);
+    if (productRow && productRow.price != null) return Number(productRow.price);
+    return 0;
+  }, [auctionRow, productRow]);
+
+  const productAsItem: AuctionItem = useMemo(() => {
+    return {
+      id: String(productRow?.product_id ?? id ?? "0"),
+      title: productRow?.title ?? "Product",
+      description: productRow?.description ?? "",
+      currentBid: price,
+      originalPrice: productRow?.price ?? undefined,
+      endTime: auctionRow?.end_time ? new Date(auctionRow.end_time) : undefined,
+      image: images[0] || placeholder,
+      category: productRow?.category ?? "",
+      condition: productRow?.condition ?? "Good",
+      location: productRow?.location ?? "Unknown",
+      bidCount: productRow?.bid_count ?? 0,
+      seller: productRow?.seller_id ? String(productRow.seller_id) : "Seller",
+      shipping: productRow?.shipping ?? "0",
+      minBidIncrement: productRow?.min_bid_increment ?? 10,
+      featured: false,
+      watchCount: productRow?.watch_count ?? 0,
+    };
+  }, [productRow, auctionRow, images, price, id]);
+
+  // Handlers
   const handlePlaceBid = () => {
-    // Validation 1: Check if user is logged in
     if (!isLoggedIn) {
-      alert('Please login to place a bid');
-      navigate('/login');
+      navigate("/login");
       return;
     }
-    
-    // Validation 2: Check if bid amount is entered
-    if (!bidAmount || bidAmount === 0) {
-      alert('Please enter a bid amount');
+    const amt = Number(bidAmount);
+    if (!amt || isNaN(amt)) {
+      alert("Enter a valid bid amount");
       return;
     }
-    
-    // Validation 3: Check if bid is a valid number
-    if (isNaN(bidAmount) || bidAmount < 0) {
-      alert('Please enter a valid bid amount');
+    const min = (productAsItem.currentBid || 0) + (productAsItem.minBidIncrement || 10);
+    if (amt < min) {
+      alert(`Minimum bid is ${min}`);
       return;
     }
-    
-    // Validation 4: Check if bid is higher than current bid
-    if (bidAmount <= product.currentBid) {
-      alert(`Your bid must be higher than the current bid of $${product.currentBid}`);
-      return;
-    }
-    
-    // Validation 5: Check minimum bid increment
-    const minimumBid = product.currentBid + product.minBidIncrement;
-    if (bidAmount < minimumBid) {
-      alert(`Minimum bid must be at least $${minimumBid} (current bid + $${product.minBidIncrement} increment)`);
-      return;
-    }
-    
-    // Validation 6: Check if auction has ended
-    if (product.endTime && product.endTime < new Date()) {
-      alert('This auction has ended');
-      return;
-    }
-    
-    // Place the bid
-    if (placeBid(product.id, bidAmount)) {
-      alert(`Bid of $${bidAmount} placed successfully!`);
-      setBidAmount(0);
+    if (placeBid(productAsItem.id, amt)) {
+      alert(`Bid placed: ${amt}`);
+      setBidAmount("");
     } else {
-      alert('Failed to place bid. Please try again.');
+      alert("Failed to place bid");
     }
   };
 
   const handleAddToCart = () => {
-    addToCart(product);
-    alert('Added to cart!');
+    addToCart(productAsItem);
+    alert("Added to cart");
   };
 
-  // Sample images (in real app, product would have multiple images)
-  const images = [product.image, product.image, product.image];
+  // UI state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-600">Loading product...</div>
+      </div>
+    );
+  }
+
+  if (!productRow) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-500">Product not found.</div>
+      </div>
+    );
+  }
+
+  // Thumbnail safe list
+  const thumbs = images.length ? images : [productAsItem.image];
+
+  // time left for auctions (simple)
+  const timeLeftMs = productAsItem.endTime ? Math.max(0, productAsItem.endTime.getTime() - Date.now()) : 0;
+  const hours = Math.floor(timeLeftMs / (1000 * 60 * 60));
+  const minutes = Math.floor((timeLeftMs % (1000 * 60 * 60)) / (1000 * 60));
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <button 
-          onClick={() => navigate('/')}
-          className="flex items-center text-orange-600 hover:text-orange-700 mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Products
-        </button>
+    <div className="min-h-screen bg-gray-50 pb-16">
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center gap-3 text-sm text-gray-600 mb-6">
+          <button onClick={() => navigate("/")} className="flex items-center gap-2 text-orange-600">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Products
+          </button>
+          <span> / </span>
+          <span className="text-gray-500">{productRow.category}</span>
+          <span> / </span>
+          <span className="font-semibold text-orange-600">{productRow.title}</span>
+        </div>
 
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
-            {/* Image Gallery */}
-            <div>
-              <div className="relative mb-4 rounded-lg overflow-hidden">
-                <img 
-                  src={images[selectedImage]} 
-                  alt={product.title}
-                  className="w-full h-96 object-cover"
+        <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* LEFT column - gallery */}
+            <div className="flex flex-col items-center">
+              <div className="w-[420px] h-[420px] rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center relative">
+                <img
+                  src={thumbs[selectedImage] || placeholder}
+                  alt={productRow.title}
+                  className="w-full h-full object-contain"
                 />
                 {isAuction && (
-                  <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold">
-                    AUCTION
-                  </div>
+                  <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded text-sm font-bold">AUCTION</div>
                 )}
+
                 <button
-                  onClick={() => toggleWatchlist(product.id)}
-                  className={`absolute top-4 right-4 p-3 rounded-full shadow-lg transition-colors ${
-                    isInWatchlist(product.id) ? 'bg-red-500 text-white' : 'bg-white text-gray-600'
+                  onClick={() => toggleWatchlist(productAsItem.id)}
+                  className={`absolute top-4 right-4 p-3 rounded-full shadow-md ${
+                    isInWatchlist(productAsItem.id) ? "bg-red-500 text-white" : "bg-white text-gray-700"
                   }`}
                 >
-                  <Heart className={`w-6 h-6 ${isInWatchlist(product.id) ? 'fill-current' : ''}`} />
+                  <Heart className={`w-6 h-6 ${isInWatchlist(productAsItem.id) ? "fill-current" : ""}`} />
                 </button>
               </div>
-              
-              <div className="grid grid-cols-3 gap-2">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImage(idx)}
-                    className={`rounded-lg overflow-hidden border-2 transition-colors ${
-                      selectedImage === idx ? 'border-orange-500' : 'border-gray-200'
-                    }`}
-                  >
-                    <img src={img} alt={`View ${idx + 1}`} className="w-full h-24 object-cover" />
-                  </button>
-                ))}
+
+              {/* thumbnails */}
+              <div className="flex items-center gap-3 mt-5">
+                <button
+                  onClick={() => setSelectedImage((s) => Math.max(0, s - 1))}
+                  className="px-3 py-2 rounded-md bg-gray-200 hover:bg-gray-300"
+                >
+                  ←
+                </button>
+
+                <div className="flex gap-2">
+                  {thumbs.map((u, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedImage(idx)}
+                      className={`w-20 h-20 rounded-md overflow-hidden border-2 ${selectedImage === idx ? "border-orange-500" : "border-gray-300"}`}
+                    >
+                      <img src={u || placeholder} alt={`thumb-${idx}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setSelectedImage((s) => Math.min(thumbs.length - 1, s + 1))}
+                  className="px-3 py-2 rounded-md bg-gray-200 hover:bg-gray-300"
+                >
+                  →
+                </button>
               </div>
             </div>
 
-            {/* Product Info */}
+            {/* RIGHT column - info */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-4">{product.title}</h1>
-              
-              <div className="flex items-center gap-4 mb-4">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-3">{productRow.title}</h1>
+
+              <div className="flex items-center gap-3 mb-4">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`w-5 h-5 ${i < 4 ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                    <Star key={i} className={`w-4 h-4 ${i < 4 ? "text-yellow-400 fill-current" : "text-gray-300"}`} />
                   ))}
                 </div>
-                <span className="text-gray-600">({product.bidCount} reviews)</span>
+                <div className="text-sm text-gray-500">({productAsItem.bidCount} reviews)</div>
               </div>
 
+              {/* Price / Auction box */}
               {isAuction ? (
-                <div className="bg-orange-50 p-6 rounded-lg mb-6">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-orange-50 rounded-lg p-5 mb-6">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Current Bid</p>
-                      <p className="text-4xl font-bold text-red-600">${product.currentBid}</p>
+                      <div className="text-sm text-gray-600">Current Bid</div>
+                      <div className="text-3xl font-bold text-red-600">PHP {productAsItem.currentBid.toLocaleString()}</div>
                     </div>
+
                     <div className="text-right">
-                      <p className="text-sm text-gray-600 mb-1">Time Left</p>
-                      <div className="flex items-center text-orange-600">
-                        <Clock className="w-5 h-5 mr-2" />
-                        <span className="text-2xl font-bold">
-                          {hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`}
-                        </span>
+                      <div className="text-sm text-gray-600">Time Left</div>
+                      <div className="flex items-center gap-2 text-orange-600 text-xl font-bold">
+                        <Clock className="w-5 h-5" />
+                        <span>{hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`}</span>
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                    <div>
-                      <span className="font-medium">Total Bids:</span> {product.bidCount}
-                    </div>
-                    <div>
-                      <span className="font-medium">Min Increment:</span> ${product.minBidIncrement}
-                    </div>
+
+                  <div className="grid grid-cols-2 gap-4 mt-4 text-sm text-gray-700">
+                    <div><strong>Total Bids:</strong> {productAsItem.bidCount}</div>
+                    <div><strong>Min Increment:</strong> PHP {productAsItem.minBidIncrement}</div>
                   </div>
 
-                  <div className="space-y-3">
+                  {/* Place bid area */}
+                  <div className="mt-4 space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Your Bid Amount
-                      </label>
+                      <label className="block text-sm text-gray-700 mb-2">Your Bid</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-3 text-gray-500 font-medium">$</span>
+                        <span className="absolute left-3 top-3 text-gray-500">PHP</span>
                         <input
                           type="number"
-                          value={bidAmount || ''}
-                          onChange={(e) => setBidAmount(Number(e.target.value))}
-                          placeholder={`Min: ${product.currentBid + product.minBidIncrement}`}
-                          className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          className="w-full pl-14 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500"
+                          placeholder={`Min: PHP ${(productAsItem.currentBid || 0) + (productAsItem.minBidIncrement || 10)}`}
+                          value={bidAmount as any}
+                          onChange={(e) => setBidAmount(e.target.value === "" ? "" : Number(e.target.value))}
                         />
                       </div>
                     </div>
-                    <button
-                      onClick={handlePlaceBid}
-                      className="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-6 rounded-lg font-medium transition-colors"
-                    >
-                      Place Bid
-                    </button>
+
+                    <button onClick={handlePlaceBid} className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-md font-semibold">Place Bid</button>
                   </div>
                 </div>
               ) : (
-                <div className="bg-orange-50 p-6 rounded-lg mb-6">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-orange-50 rounded-lg p-5 mb-6">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Price</p>
-                      <p className="text-4xl font-bold text-orange-600">${product.currentBid}</p>
+                      <div className="text-sm text-gray-600">Price</div>
+                      <div className="text-3xl font-bold text-orange-600">PHP {price.toLocaleString()}</div>
                     </div>
-                    {product.originalPrice && (
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600 mb-1">Original Price</p>
-                        <p className="text-2xl text-gray-400 line-through">${product.originalPrice}</p>
-                      </div>
+                    {productRow.price && (
+                      <div className="text-right text-sm text-gray-500 line-through">PHP {Number(productRow.price).toLocaleString()}</div>
                     )}
                   </div>
-                  <button
-                    onClick={handleAddToCart}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-6 rounded-lg font-medium transition-colors"
-                  >
-                    Add to Cart
-                  </button>
+
+                  <div className="mt-4">
+                    <button onClick={handleAddToCart} className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-md font-semibold">Add to Cart</button>
+                    <button onClick={() => navigate("/checkout")} className="w-full mt-3 border border-orange-600 text-orange-600 py-3 rounded-md font-semibold">Checkout</button>
+                  </div>
                 </div>
               )}
 
-              <div className="space-y-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <Package className="w-5 h-5 text-gray-400 mt-1" />
-                  <div>
-                    <p className="font-medium text-gray-800">Condition</p>
-                    <p className="text-gray-600">{product.condition}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-gray-400 mt-1" />
-                  <div>
-                    <p className="font-medium text-gray-800">Location</p>
-                    <p className="text-gray-600">{product.location}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Truck className="w-5 h-5 text-gray-400 mt-1" />
-                  <div>
-                    <p className="font-medium text-gray-800">Shipping</p>
-                    <p className="text-gray-600">${product.shipping} - Standard Delivery</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Shield className="w-5 h-5 text-gray-400 mt-1" />
-                  <div>
-                    <p className="font-medium text-gray-800">Seller</p>
-                    <p className="text-gray-600">{product.seller}</p>
-                  </div>
-                </div>
+              {/* shipping + seller */}
+              <div className="mb-6">
+                <div className="text-sm text-gray-600">Shipping</div>
+                <div className="text-orange-600 font-semibold">Guaranteed to get by 31 Aug – 2 Sept</div>
               </div>
 
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-3">Description</h3>
-                <p className="text-gray-600 leading-relaxed">{product.description}</p>
+              <div className="p-4 border rounded-lg flex items-center justify-between">
+                <div>
+                  <div className="font-semibold">{String(productRow.seller_id ?? productRow.seller)}</div>
+                  <div className="text-sm text-gray-500">Typical response time: 5 mins</div>
+                </div>
+                <button className="px-4 py-2 bg-orange-100 text-orange-700 rounded-md">Chat Now</button>
+              </div>
+
+              {/* specs + description */}
+              <div className="mt-6">
+                <h3 className="font-semibold text-lg mb-2">Description</h3>
+                <p className="text-gray-700 leading-relaxed">{productRow.description}</p>
               </div>
             </div>
+          </div>
+
+          {/* bottom specs */}
+          <div className="mt-8 border-t pt-6">
+            <h4 className="font-semibold mb-3">Specifications</h4>
+            <ul className="list-disc ml-6 text-gray-700">
+              <li>Display: 6.7-inch Super Retina XDR OLED</li>
+              <li>ProMotion 120Hz</li>
+              <li>A16 / A17 (depending on model)</li>
+              <li>48MP main camera</li>
+            </ul>
           </div>
         </div>
       </div>

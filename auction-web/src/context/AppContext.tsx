@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { AuctionItem, User, BidHistory, WatchListItem } from '../types/types';
+import { supabase } from '../lib/supabaseClient';
+
 
 interface AppContextType {
   // User state
@@ -119,23 +121,65 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }, [cart]);
 
   // User functions
-  const login = (email: string, password: string): boolean => {
-    // Mock login
-    if (email && password) {
-      const mockUser: User = { id: '1', name: 'User', email };
-      setUser(mockUser);
-      setIsLoggedIn(true);
-      return true;
-    }
-    return false;
-  };
 
-  const register = (userData: Omit<User, 'id'>): boolean => {
-    const mockUser: User = { id: Date.now().toString(), ...userData };
-    setUser(mockUser);
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) return false;
+
+    const { user } = data;
+
+    setUser({
+      id: user.id,
+      email: user.email!,
+      name: user.user_metadata?.name || '',
+    });
+
     setIsLoggedIn(true);
     return true;
   };
+
+  const register = async ({
+    email,
+    name,
+    password,
+  }: {
+    email: string;
+    name: string;
+    password: string;
+  }): Promise<boolean> => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name },
+      },
+    });
+
+    if (error) return false;
+
+    const { user } = data;
+
+    // Also insert into your "user" table in DB
+    await supabase.from('user').insert({
+      email: email,
+      username: name,
+      role: 'buyer',
+    });
+
+    setUser({
+      id: user?.id ?? '',
+      name,
+      email,
+    });
+
+    setIsLoggedIn(true);
+    return true;
+  };
+
 
   const logout = () => {
     setUser(null);
