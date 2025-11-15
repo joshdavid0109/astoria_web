@@ -1,51 +1,81 @@
-import React from 'react';
-import { Package } from 'lucide-react';
+import React from "react";
+import { Package, Facebook, Instagram, Twitter, Mail } from "lucide-react";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-gray-800 text-white py-12">
+    <footer className="bg-[#0F172A] text-gray-300 py-12">
       <div className="container mx-auto px-4">
+        
+        {/* 4 Columns */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+          {/* COLUMN 1 — Brand */}
           <div>
-            <div className="flex items-center mb-4">
-              <Package className="w-6 h-6 mr-2" />
-              <span className="text-xl font-bold">StorageMax</span>
+            <div className="flex items-center mb-3">
+              <img 
+                  src="../src/assets/astoria_white-nobg.png" // Path relative to the public root
+                  alt="Astoria Logo"
+                  className="h-10 w-10 mr-2" // Add appropriate Tailwind classes for sizing
+              />
+            <span className="text-2xl font-bold text-white">Astoria</span>
             </div>
-            <p className="text-gray-300 mb-4">
-              Your premier destination for storage unit auctions and quality marketplace deals.
+            <p className="text-gray-400 text-sm leading-relaxed mb-4">
+              Your trusted platform for storage auctions and great marketplace deals.
             </p>
-          </div>
-          <div>
-            <h4 className="font-medium mb-4">Quick Links</h4>
-            <div className="space-y-2 text-gray-300">
-              <div>About Us</div>
-              <div>How It Works</div>
-              <div>Seller Center</div>
-              <div>Customer Service</div>
+
+            <div className="flex gap-3">
+              {[Facebook, Instagram, Twitter].map((Icon, i) => (
+                <button
+                  key={i}
+                  className="p-2 rounded-full bg-gray-700 hover:bg-orange-500 transition-colors"
+                >
+                  <Icon className="w-4 h-4 text-white" />
+                </button>
+              ))}
             </div>
           </div>
+
+          {/* COLUMN 2 — Quick Links */}
           <div>
-            <h4 className="font-medium mb-4">Categories</h4>
-            <div className="space-y-2 text-gray-300">
-              <div>Electronics</div>
-              <div>Fashion</div>
-              <div>Home & Garden</div>
-              <div>More Categories</div>
+            <h4 className="text-lg font-semibold text-white mb-4">Quick Links</h4>
+            <ul className="space-y-2 text-sm">
+              {["About Us", "How It Works", "Seller Center", "Customer Service"].map(
+                (item) => (
+                  <li key={item} className="hover:text-orange-400 cursor-pointer">
+                    {item}
+                  </li>
+                )
+              )}
+            </ul>
+          </div>
+
+          {/* COLUMN 4 — Newsletter */}
+          <div>
+            <h4 className="text-lg font-semibold text-white mb-4">Stay Updated</h4>
+            <p className="text-gray-400 text-sm mb-3">
+              Join our newsletter for upcoming auctions & deals.
+            </p>
+
+            <div className="flex items-center bg-gray-700 rounded-lg overflow-hidden">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="bg-transparent flex-1 px-3 py-2 text-sm text-gray-200 focus:outline-none"
+              />
+              <button className="bg-orange-500 hover:bg-orange-600 px-4 py-2 text-sm font-medium text-white flex items-center gap-1">
+                <Mail className="w-4 h-4" />
+                Subscribe
+              </button>
             </div>
           </div>
-          <div>
-            <h4 className="font-medium mb-4">Support</h4>
-            <div className="space-y-2 text-gray-300">
-              <div>Help Center</div>
-              <div>Payment Methods</div>
-              <div>Shipping Info</div>
-              <div>Returns</div>
-            </div>
-          </div>
+
         </div>
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
-          <p>&copy; 2024 StorageMax. All rights reserved.</p>
+
+        {/* Bottom copyright */}
+        <div className="border-t border-gray-700 mt-10 pt-5 text-center text-gray-500 text-sm">
+          © {new Date().getFullYear()} Astoria — All rights reserved.
         </div>
+
       </div>
     </footer>
   );
