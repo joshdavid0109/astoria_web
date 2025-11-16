@@ -99,9 +99,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
     if (savedUser) {
       const userData = JSON.parse(savedUser);
-      setUser(userData);
+      setUser(userData); // userData.uid now exists
       setIsLoggedIn(true);
     }
+
     if (savedCart) setCart(JSON.parse(savedCart));
     if (savedBids) setUserBids(JSON.parse(savedBids));
     if (savedWatchlist) setWatchlist(JSON.parse(savedWatchlist));
@@ -132,19 +133,20 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       password,
     });
 
-    if (error) return false;
+    if (error || !data.user) return false;
 
-    const { user } = data;
+    const authUser = data.user;
 
     setUser({
-      id: user.id,
-      email: user.email!,
-      name: user.user_metadata?.name || '',
+      uid: authUser.id,
+      email: authUser.email!,
+      name: authUser.user_metadata?.name || "",
     });
 
     setIsLoggedIn(true);
     return true;
   };
+
 
   const register = async ({
     email,
@@ -162,32 +164,26 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         options: { data: { name } },
       });
 
-      if (error) {
-        console.error("Auth error:", error.message);
-        return false;
-      }
+      if (error || !data.user) return false;
 
-      const user = data.user;
-      if (!user) return false;
+      const authUser = data.user;
 
-      const { error: dbError } = await supabase.from("user").insert({
-        id: user.id,        // ← REQUIRED
-        email: email,
+      // Insert into public.users (your custom table)
+      const { error: dbError } = await supabase.from("users").insert({
+        unique_id: authUser.id,
         username: name,
-        role: "buyer",
+        email: email,
+        role: "User",
+        salt: "1"
       });
 
-      if (dbError) {
-        console.error("DB error:", dbError.message);
-        return false;
-      }
-
-      return true;
-    } catch (err) {
-      console.error("Unexpected registration error:", err);
+      return !dbError;
+    } catch (e) {
+      console.error(e);
       return false;
     }
   };
+
 
 
   const logout = () => {
@@ -229,17 +225,20 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   // Bidding functions
   const placeBid = (itemId: string, amount: number): boolean => {
     if (!isLoggedIn) return false;
+
     const newBid: BidHistory = {
       id: Date.now().toString(),
       itemId,
-      userId: user!.id,
+      userId: user!.uid,
       amount,
       timestamp: new Date(),
       bidderName: user!.name
     };
+
     setUserBids([...userBids, newBid]);
     return true;
   };
+
 
   // Watchlist functions
   const toggleWatchlist = (itemId: string) => {
@@ -247,9 +246,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     if (existing) {
       setWatchlist(watchlist.filter(w => w.itemId !== itemId));
     } else {
-      setWatchlist([...watchlist, { userId: user?.id || '', itemId, addedAt: new Date() }]);
+      setWatchlist([
+        ...watchlist,
+        { userId: user?.uid || "", itemId, addedAt: new Date() }
+      ]);
     }
   };
+
 
   const isInWatchlist = (itemId: string) => watchlist.some(w => w.itemId === itemId);
 

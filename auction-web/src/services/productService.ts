@@ -1,8 +1,9 @@
 import { supabase } from "../lib/supabaseClient";
 
-/** -------------------------------------------
- *  AUCTION PRODUCTS (JOIN auction + product + product_images)
- * -------------------------------------------*/
+/* ------------------------------------------------------
+ *  AUCTION PRODUCTS
+ *  (JOIN auction + product + product_images)
+ * ------------------------------------------------------ */
 export async function getAuctionProducts() {
   const { data, error } = await supabase
     .from("auction")
@@ -16,15 +17,16 @@ export async function getAuctionProducts() {
         description,
         category,
         price,
-        seller_id,
+        uid,              
         status,
         product_images:product_images!product_id ( url )
       )
     `);
 
-  console.log("Auction products data:", data, error);
-
-  if (error) return [];
+  if (error) {
+    console.error("getAuctionProducts error:", error);
+    return [];
+  }
 
   return data.map((row: any) => {
     const p = row.product;
@@ -34,7 +36,7 @@ export async function getAuctionProducts() {
       description: p.description,
       image: p.product_images?.[0]?.url || null,
       category: p.category,
-      seller: p.seller_id,
+      seller_uid: p.uid,
       currentBid: row.current_price ?? p.price,
       minBidIncrement: 10,
       endTime: row.end_time ? new Date(row.end_time) : null,
@@ -46,11 +48,9 @@ export async function getAuctionProducts() {
   });
 }
 
-
-/** -------------------------------------------
+/* ------------------------------------------------------
  *  MARKETPLACE PRODUCTS (NON-AUCTION)
- *  product + product_images
- * -------------------------------------------*/
+ * ------------------------------------------------------ */
 export async function getMarketplaceProducts() {
   const { data, error } = await supabase
     .from("product")
@@ -60,47 +60,46 @@ export async function getMarketplaceProducts() {
       description,
       category,
       price,
-      seller_id,
+      uid,                
       is_auction,
-      product_images:product_images (
+      product_images (
         url
       )
     `)
     .eq("is_auction", false);
 
-  console.log("Marketplace products:", data, error);
+  if (error) {
+    console.error("getMarketplaceProducts error:", error);
+    return [];
+  }
 
-  if (error) return [];
-
-  return data.map((p) => ({
+  return data.map((p: any) => ({
     id: p.product_id.toString(),
     title: p.title,
     description: p.description,
     image: p.product_images?.[0]?.url || null,
     category: p.category,
-    seller: p.seller_id,
+    seller_uid: p.uid,
     currentBid: p.price,
   }));
 }
 
-/**
- * Fetch raw product row by product_id (includes basic product fields).
- */
+/* ------------------------------------------------------
+ *  GET PRODUCT BY ID
+ * ------------------------------------------------------ */
 export async function getProductById(productId: string | number) {
   const { data, error } = await supabase
     .from("product")
-    .select(
-      `
+    .select(`
       product_id,
       title,
       description,
       category,
       price,
-      seller_id,
+      uid,             
       is_auction,
       status
-    `
-    )
+    `)
     .eq("product_id", productId)
     .limit(1)
     .single();
@@ -109,12 +108,13 @@ export async function getProductById(productId: string | number) {
     console.error("getProductById error:", error);
     return { product: null, error };
   }
+
   return { product: data, error: null };
 }
 
-/**
- * Fetch product_images for a product_id (returns array of { url }).
- */
+/* ------------------------------------------------------
+ *  PRODUCT IMAGES
+ * ------------------------------------------------------ */
 export async function getProductImages(productId: string | number) {
   const { data, error } = await supabase
     .from("product_images")
@@ -126,12 +126,13 @@ export async function getProductImages(productId: string | number) {
     console.error("getProductImages error:", error);
     return { images: [], error };
   }
+
   return { images: data || [], error: null };
 }
 
-/**
- * Fetch auction row for a product_id (if exists).
- */
+/* ------------------------------------------------------
+ *  GET AUCTION ROW (IF PRODUCT IS AUCTIONED)
+ * ------------------------------------------------------ */
 export async function getAuctionByProductId(productId: string | number) {
   const { data, error } = await supabase
     .from("auction")
@@ -142,22 +143,17 @@ export async function getAuctionByProductId(productId: string | number) {
       current_price,
       start_time,
       end_time,
-      winner_id
+      uid         
     `)
     .eq("product_id", productId)
     .limit(1)
     .single();
 
-  if (error) {
-    // If no auction row found, supabase returns 400 with message - handle gracefully
-    // We treat missing auction as not-an-error for our UI
-    // But log so devs can see underlying error
-    if (error.code === "PGRST116" || error.message?.includes("Result is empty")) {
-      return { auction: null, error: null };
-    }
-    console.error("getAuctionByProductId error:", error);
-    return { auction: null, error };
-  }
+ if (error) {
+  console.error("getAuctionProducts error:", JSON.stringify(error, null, 2));
+  return [];
+}
+
 
   return { auction: data, error: null };
 }
