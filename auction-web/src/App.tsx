@@ -7,12 +7,15 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CheckoutPage from './pages/CheckoutPage';
+import ScrollToTop from './components/scrollToTop';
 import './App.css';
 
 function App() {
   return (
     <AppProvider>
       <Router>
+        <ScrollToTop />
+
         <div className="App min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">

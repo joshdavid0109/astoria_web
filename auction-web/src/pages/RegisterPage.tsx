@@ -16,40 +16,40 @@ const RegisterPage: React.FC = () => {
     agreeTerms: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validation 1: Check if name is provided
     if (!formData.name) {
       alert('Please enter your full name');
       return;
     }
-    
+
     // Validation 2: Check if email is provided
     if (!formData.email) {
       alert('Please enter your email address');
       return;
     }
-    
+
     // Validation 3: Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       alert('Please enter a valid email address');
       return;
     }
-    
+
     // Validation 4: Check if password is provided
     if (!formData.password) {
       alert('Please enter a password');
       return;
     }
-    
+
     // Validation 5: Check minimum password length
     if (formData.password.length < 6) {
       alert('Password must be at least 6 characters long');
       return;
     }
-    
+
     // Validation 6: Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match!');
@@ -62,12 +62,18 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-    // Register user
-    if (register({ name: formData.name, email: formData.email })) {
-      alert('Registration successful! Welcome to StorageMax!');
-      navigate('/');
+    // ⭐ REGISTER USER (await required)
+    const success = await register({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (success) {
+      alert("Registration successful! Welcome to Astoria!");
+      navigate("/login");
     } else {
-      alert('Registration failed. Please try again.');
+      alert("Registration failed. Please try again.");
     }
   };
 

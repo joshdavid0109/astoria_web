@@ -202,6 +202,11 @@ const HomePage: React.FC = () => {
             ) : (
               <button
                 onClick={() => {
+                  if (!isLoggedIn) {
+                    navigate("/login");
+                    return;
+                  }
+
                   addToCart(product);
                   alert(`${product.title} added to cart`);
                 }}

@@ -9,7 +9,11 @@ interface AppContextType {
   user: User | null;
   isLoggedIn: boolean;
   login: (email: string, password: string) => boolean;
-  register: (userData: Omit<User, 'id'>) => boolean;
+   register: (params: {
+    name: string;
+    email: string;
+    password: string;
+  }) => Promise<boolean>;
   logout: () => void;
 
   // Cart state
@@ -151,33 +155,38 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     name: string;
     password: string;
   }): Promise<boolean> => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name },
-      },
-    });
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } },
+      });
 
-    if (error) return false;
+      if (error) {
+        console.error("Auth error:", error.message);
+        return false;
+      }
 
-    const { user } = data;
+      const user = data.user;
+      if (!user) return false;
 
-    // Also insert into your "user" table in DB
-    await supabase.from('user').insert({
-      email: email,
-      username: name,
-      role: 'buyer',
-    });
+      const { error: dbError } = await supabase.from("user").insert({
+        id: user.id,        // ← REQUIRED
+        email: email,
+        username: name,
+        role: "buyer",
+      });
 
-    setUser({
-      id: user?.id ?? '',
-      name,
-      email,
-    });
+      if (dbError) {
+        console.error("DB error:", dbError.message);
+        return false;
+      }
 
-    setIsLoggedIn(true);
-    return true;
+      return true;
+    } catch (err) {
+      console.error("Unexpected registration error:", err);
+      return false;
+    }
   };
 
 
