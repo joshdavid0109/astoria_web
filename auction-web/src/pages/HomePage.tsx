@@ -7,6 +7,8 @@ import {
   getAuctionProducts,
   getMarketplaceProducts,
 } from "../services/productService.ts";
+import { ChevronDown, ChevronUp } from "lucide-react";
+
 
 interface Category {
   id: number;
@@ -41,6 +43,8 @@ const HomePage: React.FC = () => {
   const [products, setProducts] = useState<AuctionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [heroCollapsed, setHeroCollapsed] = useState(false);
+  const [categoriesCollapsed, setCategoriesCollapsed] = useState(false);
+
 
 
   const filteredProducts = products.filter((product) =>
@@ -240,23 +244,56 @@ const HomePage: React.FC = () => {
       </div>
 
 
+
       {/* Categories */}
-      <div className="container mx-auto px-4 py-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-8">Browse Categories</h2>
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-4">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all"
-            >
-              <span className="text-3xl mb-2">{category.icon}</span>
-              <span className="text-sm font-medium text-gray-700">
-                {category.name}
-              </span>
-            </button>
-          ))}
-        </div>
+<div className="container mx-auto px-4 py-12">
+
+  {/* Header + Collapse button */}
+  <div className="flex items-center justify-between mb-4">
+    <h2 className="text-2xl font-bold text-gray-800">Browse Categories</h2>
+
+    <button
+          onClick={() => setCategoriesCollapsed((c) => !c)}
+          className="flex items-center gap-2 px-3 py-1.5 border rounded-lg bg-white hover:bg-gray-100 text-gray-700 text-sm shadow-sm"
+        >
+          {categoriesCollapsed ? (
+            <>
+              <span>Expand</span>
+              <ChevronDown className="w-4 h-4" />
+            </>
+          ) : (
+            <>
+              <span>Collapse</span>
+              <ChevronUp className="w-4 h-4" />
+            </>
+          )}
+        </button>
+  </div>
+
+  {/* Collapsible content */}
+    <div
+      className={`
+        grid transition-all duration-500 overflow-hidden
+        ${categoriesCollapsed ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"}
+      `}
+    >
+      <div className="grid grid-cols-4 md:grid-cols-8 gap-4 overflow-hidden">
+        {categories.map((category) => (
+          <button
+            key={category.id}
+            className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all"
+          >
+            <span className="text-3xl mb-2">{category.icon}</span>
+            <span className="text-sm font-medium text-gray-700">
+              {category.name}
+            </span>
+          </button>
+        ))}
       </div>
+    </div>
+
+    </div>
+
 
       {/* Products */}
       <div className="container mx-auto px-4 py-12">
