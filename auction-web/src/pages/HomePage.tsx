@@ -40,6 +40,8 @@ const HomePage: React.FC = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [products, setProducts] = useState<AuctionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [heroCollapsed, setHeroCollapsed] = useState(false);
+
 
   const filteredProducts = products.filter((product) =>
     product.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -61,192 +63,182 @@ const HomePage: React.FC = () => {
     load();
   }, [currentMode]);
 
+  useEffect(() => {
+  const handleScroll = () => {
+    setHeroCollapsed(window.scrollY > 80); // collapse threshold
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
+
   // Product Card Component
-  const ProductCard: React.FC<{ product: AuctionItem }> = ({ product }) => {
-    const isAuction = currentMode === "auction";
+  const ProductCard: React.FC<{ product: AuctionItem; viewMode: "grid" | "list" }> = ({ product, viewMode }) => {
+  const isAuction = currentMode === "auction";
 
-    const endDate = product.endTime ? new Date(product.endTime) : null;
-    const timeLeft = endDate ? Math.max(0, endDate.getTime() - Date.now()) : 0;
-    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+  const endDate = product.endTime ? new Date(product.endTime) : null;
+  const timeLeft = endDate ? Math.max(0, endDate.getTime() - Date.now()) : 0;
+  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
 
-    return (
-      <div className="w-[220px] md:w-[240px] lg:w-[260px] bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 group mx-auto">
-        <div className="relative overflow-hidden">
-          <div className="aspect-square w-full bg-gray-200 overflow-hidden">
-            <img
-              src={product.image || "/placeholder.png"}
-              alt={product.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+  const isList = viewMode === "list";
+  
+  return (
+    <div
+      className={`bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden 
+        ${isList ? "flex w-full" : "w-[220px] md:w-[240px] lg:w-[260px] mx-auto"}
+      `}
+    >
+
+      {/* IMAGE */}
+      <div className={`${isList ? "w-40 h-40" : "aspect-square w-full"} bg-gray-200 overflow-hidden`}>
+        <img
+          src={product.image || "/placeholder.png"}
+          alt={product.title}
+          className={`${isList ? "w-full h-full object-cover" : "w-full h-full object-cover group-hover:scale-105 transition-all"}`}
+        />
+      </div>
+
+      {/* CONTENT */}
+      <div className={`${isList ? "flex-1 p-4" : "p-4"}`}>
+        <h3 className="font-medium text-gray-800 mb-2 line-clamp-2 text-sm">
+          {product.title}
+        </h3>
+
+        {/* Ratings */}
+        <div className="flex items-center gap-1 mb-2">
+          <div className="flex">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`w-3 h-3 ${i < 4 ? "text-yellow-400 fill-current" : "text-gray-300"}`}
+              />
+            ))}
           </div>
+          <span className="text-xs text-gray-500">({product.bidCount || 0})</span>
+        </div>
 
-          {/* Watchlist Button */}
-          <button
-            onClick={() => toggleWatchlist(product.id)}
-            className={`absolute top-3 right-3 rounded-full p-2 shadow-md transition-opacity ${
-              isInWatchlist(product.id)
-                ? "bg-red-500 text-white"
-                : "bg-white text-gray-600 opacity-0 group-hover:opacity-100"
-            }`}
-          >
-            <Heart
-              className={`w-4 h-4 ${
-                isInWatchlist(product.id) ? "fill-current" : ""
-              }`}
-            />
-          </button>
-
-          {isAuction && (
-            <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-              AUCTION
+        {/* Price */}
+        <div className="mb-3">
+          {isAuction ? (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-lg font-bold text-red-600">
+                  ${product.currentBid}
+                </span>
+                <div className="flex items-center text-xs text-gray-500">
+                  <Clock className="w-3 h-3 mr-1" />
+                  {hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-orange-600">${product.currentBid}</span>
+              {product.originalPrice && (
+                <span className="text-sm text-gray-400 line-through">${product.originalPrice}</span>
+              )}
             </div>
           )}
         </div>
+                {/* Short Description (List View Only) */}
+        {isList && product.description && (
+          <p className="text-xs text-gray-600 mb-4 line-clamp-2">
+            {product.description}
+          </p>
+        )}
 
-        <div className="p-4">
-          <h3 className="font-medium text-gray-800 mb-2 line-clamp-2 text-sm">
-            {product.title}
-          </h3>
 
-          {/* Ratings */}
-          <div className="flex items-center gap-1 mb-2">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-3 h-3 ${
-                    i < 4 ? "text-yellow-400 fill-current" : "text-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-xs text-gray-500">({product.bidCount || 0})</span>
-          </div>
+        {/* Buttons */}
+        <div className="flex flex-col gap-2 mt-3">
+        {isAuction ? (
+          <button
+            onClick={() => {
+              if (!isLoggedIn) {
+                navigate("/login");
+                return;
+              }
 
-          {/* Pricing Area */}
-          <div className="mb-3">
-            {isAuction ? (
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-lg font-bold text-red-600">
-                    ${product.currentBid}
-                  </span>
+              const amount =
+                (product.currentBid || 0) +
+                (product.minBidIncrement || 10);
 
-                  <div className="flex items-center text-xs text-gray-500">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`}
-                  </div>
-                </div>
+              if (endDate && endDate < new Date()) {
+                alert("Auction already ended");
+                return;
+              }
 
-                <div className="text-xs text-gray-500 mb-2">
-                  {product.bidCount || 0} bids
-                </div>
+              if (placeBid(product.id, amount)) {
+                alert(`Bid placed: $${amount}`);
+              }
+            }}
+            className="w-full py-2 px-4 rounded-lg text-sm bg-red-500 hover:bg-red-600 text-white"
+          >
+            Place Bid
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              if (!isLoggedIn) {
+                navigate("/login");
+                return;
+              }
 
-                <div className="text-xs text-gray-500">
-                  Min bid: +${product.minBidIncrement || 10}
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-orange-600">
-                  ${product.currentBid}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-sm text-gray-400 line-through">
-                    ${product.originalPrice}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Location */}
-          <div className="flex items-center text-xs text-gray-500 mb-3">
-            <MapPin className="w-3 h-3 mr-1" />
-            {product.location || "Unknown"}
-          </div>
-
-          {/* Seller */}
-          <div className="text-xs text-gray-600 mb-3">
-            by {product.seller || "Seller"}
-          </div>
-
-          {/* Buttons */}
-          <div className="space-y-2">
-            {isAuction ? (
-              <button
-                onClick={() => {
-                  if (!isLoggedIn) {
-                    navigate("/login");
-                    return;
-                  }
-
-                  const amount =
-                    (product.currentBid || 0) +
-                    (product.minBidIncrement || 10);
-
-                  if (endDate && endDate < new Date()) {
-                    alert("Auction already ended");
-                    return;
-                  }
-
-                  if (placeBid(product.id, amount)) {
-                    alert(`Bid placed: $${amount}`);
-                  }
-                }}
-                className="w-full py-2 px-4 rounded-lg font-medium text-sm bg-red-500 hover:bg-red-600 text-white"
-              >
-                Place Bid
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  if (!isLoggedIn) {
-                    navigate("/login");
-                    return;
-                  }
-
-                  addToCart(product);
-                  alert(`${product.title} added to cart`);
-                }}
-                className="w-full py-2 px-4 rounded-lg font-medium text-sm bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                Add to Cart
-              </button>
-            )}
-
-            <button
-              onClick={() => navigate(`/product/${product.id}`)}
-              className="w-full py-2 px-4 rounded-lg font-medium text-sm border border-gray-300 text-gray-700 hover:bg-gray-50"
-            >
-              View Details
-            </button>
-          </div>
+              addToCart(product);
+              alert(`${product.title} added to cart`);
+            }}
+          className="w-full py-2 px-4 rounded-lg text-sm bg-orange-500 hover:bg-orange-600 text-white"
+        >
+          Add to Cart
+        </button>
+      )}
+          <button
+            onClick={() => navigate(`/product/${product.id}`)}
+            className="w-full py-2 px-4 rounded-lg text-sm border border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
+            View Details
+          </button>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* HERO */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
+     {/* HERO */}
+      <div
+        className={`
+          bg-gradient-to-r from-orange-500 to-orange-600 text-white 
+          transition-all duration-500 ease-in-out overflow-hidden
+          ${heroCollapsed ? "py-4" : "py-16"}
+        `}
+      >
+        <div className="container mx-auto px-4">
+          <div
+            className={`
+              text-center transition-all duration-500
+              ${heroCollapsed ? "scale-75 opacity-80" : "scale-100 opacity-100"}
+            `}
+          >
             <h1 className="text-5xl font-bold mb-4">
               {currentMode === "auction"
                 ? "Bid & Win Amazing Items"
                 : "Shop & Save More"}
             </h1>
-            <p className="text-xl mb-8 opacity-90">
-              {currentMode === "auction"
-                ? "Discover unique items from real auctions"
-                : "Find great deals across categories"}
-            </p>
+
+            {!heroCollapsed && (
+              <p className="text-xl mb-8 opacity-90">
+                {currentMode === "auction"
+                  ? "Discover unique items from real auctions"
+                  : "Find great deals across categories"}
+              </p>
+            )}
           </div>
         </div>
       </div>
+
 
       {/* Categories */}
       <div className="container mx-auto px-4 py-12">
@@ -302,9 +294,15 @@ const HomePage: React.FC = () => {
         {loading ? (
           <p className="text-center text-gray-500">Loading products...</p>
         ) : (
-          <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(220px,1fr))] justify-center">
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid gap-6 grid-cols-[repeat(auto-fill,minmax(220px,1fr))]"
+                : "flex flex-col gap-4"
+            }
+          >
             {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product.id} product={product} viewMode={viewMode} />
             ))}
           </div>
         )}

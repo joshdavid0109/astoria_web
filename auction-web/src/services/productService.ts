@@ -1,8 +1,17 @@
 import { supabase } from "../lib/supabaseClient";
 
 /* ------------------------------------------------------
- *  AUCTION PRODUCTS
- *  (JOIN auction + product + product_images)
+ *  SAFE HELPER (no undefined, no breaking shapes)
+ * ------------------------------------------------------ */
+function safeReturn(dataKey: string, data: any, error: any) {
+  return {
+    [dataKey]: data ?? null,
+    error: error ?? null,
+  };
+}
+
+/* ------------------------------------------------------
+ *  AUCTION PRODUCTS (Homepage listings)
  * ------------------------------------------------------ */
 export async function getAuctionProducts() {
   const { data, error } = await supabase
@@ -17,7 +26,7 @@ export async function getAuctionProducts() {
         description,
         category,
         price,
-        uid,              
+        uid,
         status,
         product_images:product_images!product_id ( url )
       )
@@ -28,7 +37,7 @@ export async function getAuctionProducts() {
     return [];
   }
 
-  return data.map((row: any) => {
+  return (data || []).map((row: any) => {
     const p = row.product;
     return {
       id: String(p.product_id),
@@ -49,7 +58,7 @@ export async function getAuctionProducts() {
 }
 
 /* ------------------------------------------------------
- *  MARKETPLACE PRODUCTS (NON-AUCTION)
+ *  MARKETPLACE PRODUCTS
  * ------------------------------------------------------ */
 export async function getMarketplaceProducts() {
   const { data, error } = await supabase
@@ -60,11 +69,9 @@ export async function getMarketplaceProducts() {
       description,
       category,
       price,
-      uid,                
+      uid,
       is_auction,
-      product_images (
-        url
-      )
+      product_images ( url )
     `)
     .eq("is_auction", false);
 
@@ -73,7 +80,7 @@ export async function getMarketplaceProducts() {
     return [];
   }
 
-  return data.map((p: any) => ({
+  return (data || []).map((p: any) => ({
     id: p.product_id.toString(),
     title: p.title,
     description: p.description,
@@ -85,7 +92,7 @@ export async function getMarketplaceProducts() {
 }
 
 /* ------------------------------------------------------
- *  GET PRODUCT BY ID
+ *  GET PRODUCT BY ID — ALWAYS RETURNS {product, error}
  * ------------------------------------------------------ */
 export async function getProductById(productId: string | number) {
   const { data, error } = await supabase
@@ -96,24 +103,18 @@ export async function getProductById(productId: string | number) {
       description,
       category,
       price,
-      uid,             
+      uid,
       is_auction,
       status
     `)
     .eq("product_id", productId)
-    .limit(1)
-    .single();
+    .maybeSingle(); // SAFE
 
-  if (error) {
-    console.error("getProductById error:", error);
-    return { product: null, error };
-  }
-
-  return { product: data, error: null };
+  return safeReturn("product", data, error);
 }
 
 /* ------------------------------------------------------
- *  PRODUCT IMAGES
+ *  PRODUCT IMAGES — ALWAYS RETURNS {images, error}
  * ------------------------------------------------------ */
 export async function getProductImages(productId: string | number) {
   const { data, error } = await supabase
@@ -122,16 +123,11 @@ export async function getProductImages(productId: string | number) {
     .eq("product_id", productId)
     .order("image_id", { ascending: true });
 
-  if (error) {
-    console.error("getProductImages error:", error);
-    return { images: [], error };
-  }
-
-  return { images: data || [], error: null };
+  return safeReturn("images", data || [], error);
 }
 
 /* ------------------------------------------------------
- *  GET AUCTION ROW (IF PRODUCT IS AUCTIONED)
+ *  GET AUCTION BY PRODUCT ID — ALWAYS RETURNS {auction, error}
  * ------------------------------------------------------ */
 export async function getAuctionByProductId(productId: string | number) {
   const { data, error } = await supabase
@@ -143,17 +139,10 @@ export async function getAuctionByProductId(productId: string | number) {
       current_price,
       start_time,
       end_time,
-      uid         
+      winner_id
     `)
     .eq("product_id", productId)
-    .limit(1)
-    .single();
+    .maybeSingle(); // SAFE: never throws on 0 rows
 
- if (error) {
-  console.error("getAuctionProducts error:", JSON.stringify(error, null, 2));
-  return [];
-}
-
-
-  return { auction: data, error: null };
+  return safeReturn("auction", data, error);
 }
