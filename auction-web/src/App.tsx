@@ -9,6 +9,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CheckoutPage from './pages/CheckoutPage';
 import ScrollToTop from './components/scrollToTop';
 import './App.css';
+import CategoryPage from './pages/CategoryPage';
 
 function App() {
   return (
@@ -25,6 +26,8 @@ function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/category/:name" element={<CategoryPage />} />
+
             </Routes>
           </main>
           <Footer />
