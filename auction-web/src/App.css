@@ -12,3 +12,18 @@
 .animate-fadeIn {
   animation: fadeIn 0.15s ease-out;
 }
+
+/* Amazon-style hover zoom */
+.product-image-wrapper {
+  overflow: hidden;
+  position: relative;
+}
+
+.product-image {
+  transition: transform 0.25s ease;
+  will-change: transform;
+}
+
+.product-image-wrapper:hover .product-image {
+  transform: scale(1.08);
+}

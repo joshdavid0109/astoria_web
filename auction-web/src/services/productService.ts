@@ -146,3 +146,18 @@ export async function getAuctionByProductId(productId: string | number) {
 
   return safeReturn("auction", data, error);
 }
+
+export async function fetchProductById(id?: string) {
+  const { data, error } = await supabase
+    .from("product")
+    .select("*")
+    .eq("product_id", id)
+    .single();
+
+  if (error) {
+    console.error("fetchProductById", error);
+    return null;
+  }
+
+  return data;
+}

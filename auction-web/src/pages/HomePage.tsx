@@ -1,10 +1,15 @@
-// src/pages/HomePage.tsx
 import React, { useEffect, useState } from "react";
-import HeroPremium from "../components/home/Hero";
-import CategoryBlockPremium from "../components/home/CategoryBlock";
 import { useNavigate } from "react-router-dom";
 
+import Hero from "../components/home/Hero";
+import CategoryGrid from "../components/home/amazon/CategoryGrid";
+import ProductRow from "../components/home/amazon/ProductRow";
+import CuratedCategoryGrid from "../components/home/amazon/CuratedGrid";
+import SignInCTA from "../components/home/amazon/SIgnInCTA";
+import TopPicksRow from "../components/home/amazon/TopPicksRow";
+
 import { useAppContext } from "../context/AppContext";
+
 import {
   fetchCategories,
   fetchActiveBanners,
@@ -17,52 +22,64 @@ import {
   fetchHotAuctions,
   fetchNewAuctions,
 } from "../services/auctionService";
+import AuctionRow from "../components/home/auction/AuctionRow";
 
-type CatRow = { categories_id: number; name: string; icon?: string | null };
+/* ------------------------------------------
+ Types
+------------------------------------------ */
+type CategoryRow = {
+  categories_id: number;
+  name: string;
+  icon?: string | null;
+};
 
+/* ------------------------------------------
+ Component
+------------------------------------------ */
 const HomePage: React.FC = () => {
-
   const navigate = useNavigate();
-  const { currentMode } = useAppContext();
+  const { currentMode, isLoggedIn} = useAppContext();
 
-  // Shared
-  const [categories, setCategories] = useState<CatRow[]>([]);
+  /* ---------- Shared ---------- */
+  const [categories, setCategories] = useState<CategoryRow[]>([]);
+  const [banners, setBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Marketplace
+  /* ---------- Marketplace ---------- */
   const [flashDeals, setFlashDeals] = useState<any[]>([]);
   const [bestSellers, setBestSellers] = useState<any[]>([]);
-  const [banners, setBanners] = useState<any[]>([]);
 
-  // Auction
+  /* ---------- Auction ---------- */
   const [endingSoon, setEndingSoon] = useState<any[]>([]);
   const [hotAuctions, setHotAuctions] = useState<any[]>([]);
   const [newAuctions, setNewAuctions] = useState<any[]>([]);
 
-  // Utility
-  const findIcon = (name: string) =>
-    categories.find((c) =>
-      c.name?.toLowerCase().includes(name.toLowerCase())
-    )?.icon || null;
-
+  /* ------------------------------------------
+    Data Load
+  ------------------------------------------ */
   useEffect(() => {
     async function load() {
       setLoading(true);
 
+      // Categories (always)
       const cats = await fetchCategories();
       setCategories(cats || []);
 
+      // Banners (always)
+      const b = await fetchActiveBanners();
+      setBanners(b || []);
+
+      // Marketplace-specific
       if (currentMode === "marketplace") {
-        const [b, f, bs] = await Promise.all([
-          fetchActiveBanners(),
+        const [f, bs] = await Promise.all([
           fetchFlashDeals(12),
           fetchBestSellers(12),
         ]);
-        setBanners(b || []);
         setFlashDeals(f || []);
         setBestSellers(bs || []);
       }
 
+      // Auction-specific
       if (currentMode === "auction") {
         const [end, hot, newer] = await Promise.all([
           fetchEndingSoonAuctions(),
@@ -80,241 +97,105 @@ const HomePage: React.FC = () => {
     load();
   }, [currentMode]);
 
-  // ------------------------------------------
-  // Marketplace Blocks
-  // ------------------------------------------
-  const marketplaceBlocks = [
-    {
-      title: "Have more fun with family",
-      items: [
-        { name: "Toys & Games", image: findIcon("Toys & Games") },
-        { name: "Baby Products", image: findIcon("Baby Products") },
-        { name: "Pet Supplies", image: findIcon("Pet Supplies") },
-        { name: "Books", image: findIcon("Books") },
-      ],
-    },
-    {
-      title: "Deals on top categories",
-      items: [
-        { name: "Books", image: findIcon("Books") },
-        { name: "Clothing, Shoes & Jewelry", image: findIcon("Clothing") },
-        { name: "Computers & Accessories", image: findIcon("Computers") },
-        { name: "Beauty and Personal Care", image: findIcon("Beauty") },
-      ],
-    },
-    {
-      title: "Find gifts at any price",
-      items: [
-        { name: "Under $10", image: null },
-        { name: "Under $25", image: null },
-        { name: "Under $50", image: null },
-        { name: "Under $75", image: null },
-      ],
-    },
-    {
-      title: "Deals on fashion",
-      items: [
-        { name: "Women's", image: findIcon("Women") },
-        { name: "Men's", image: findIcon("Men") },
-        { name: "Shoes", image: findIcon("Shoes") },
-        { name: "Gifts", image: findIcon("Gifts") },
-      ],
-    },
-  ];
-
-  // ------------------------------------------
-  // Auction Blocks
-  // ------------------------------------------
-  const auctionBlocks = [
-    {
-      title: "Ending Soon",
-      items: endingSoon.map((a: any) => ({
-        name: a.product?.title,
-        image: a.product?.image_url,
-      })),
-    },
-    {
-      title: "Hot Auctions",
-      items: hotAuctions.map((a: any) => ({
-        name: a.product?.title,
-        image: a.product?.image_url,
-      })),
-    },
-    {
-      title: "New Auctions",
-      items: newAuctions.map((a: any) => ({
-        name: a.product?.title,
-        image: a.product?.image_url,
-      })),
-    },
-    {
-      title: "Popular Categories",
-      items: [
-        { name: "Tech", image: findIcon("Electronics") },
-        { name: "Home", image: findIcon("Home") },
-        { name: "Fashion", image: findIcon("Fashion") },
-        { name: "Toys", image: findIcon("Toys") },
-      ],
-    },
-  ];
-
-  // ------------------------------------------
-  // Marketplace Home Layout
-  // ------------------------------------------
-  const MarketplaceHome = () => (
-    <div className="container mx-auto px-6 py-12">
-      {/* Premium curated blocks */}
-      <div className="mt-12 grid grid-cols-12 gap-8">
-        <div className="col-span-12">
-          <CategoryBlockPremium block={marketplaceBlocks[1]} />
-        </div>
-
-        <div className="col-span-12 md:col-span-4">
-          <CategoryBlockPremium block={marketplaceBlocks[3]} />
-        </div>
-
-        <div className="col-span-12 md:col-span-4">
-          <CategoryBlockPremium block={marketplaceBlocks[0]} />
-        </div>
-
-        <div className="col-span-12 md:col-span-4">
-          <CategoryBlockPremium block={marketplaceBlocks[2]} />
-        </div>
-
-        {/* Trending Scroll */}
-        <div className="col-span-12 mt-16 relative">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Trending Now</h2>
-
-          <div className="pointer-events-none absolute right-0 top-0 h-full w-20 bg-gradient-to-l from-slate-50 to-transparent z-10" />
-
-          <div className="flex overflow-x-auto gap-6 pb-4 snap-x snap-mandatory scroll-smooth no-scrollbar">
-            {([...marketplaceBlocks[0].items, ...marketplaceBlocks[1].items]).map(
-              (item, i) => (
-                <button
-                  onClick={() => navigate(`/category/${item.name}`)}
-                  key={i}
-                  className="
-                    snap-start min-w-[170px] w-[170px]
-                    bg-white rounded-2xl shadow-sm hover:shadow-lg 
-                    border border-gray-100 hover:border-orange-300
-                    transition-all duration-300 p-4
-                    flex flex-col items-center
-                  "
-                >
-                  <div className="h-28 w-full bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center">
-                    <img
-                      src={item.image || '/placeholder.png'}
-                      alt={item.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-
-                  <div className="mt-3 text-sm font-semibold text-center">{item.name}</div>
-
-                  <div className="text-xs text-orange-600 flex items-center gap-1">
-                    See more <span className="text-[10px]">›</span>
-                  </div>
-                </button>
-              )
-            )}
-          </div>
-
-        </div>
-
-        {/* Editor Picks */}
-        <div className="col-span-12 mt-16">
-          <div className="bg-white rounded-3xl shadow-lg border p-10">
-            <h2 className="text-2xl font-bold text-slate-900">
-              Editor's Premium Picks
-            </h2>
-            <div className="h-1 w-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded mt-3"></div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
-              {marketplaceBlocks[2].items.map((item, i) => (
-                <CategoryBlockPremium
-                  key={i}
-                  block={{ title: item.name, items: [item] }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Flash Deals */}
-      <section className="mt-16">
-        <h2 className="text-2xl font-semibold">Flash Deals</h2>
-        <div className="flex overflow-x-auto gap-4 mt-4 pb-4">
-          {flashDeals.map((fd: any) => (
-            <div key={fd.flash_id} className="min-w-[220px]">
-              <div className="bg-white rounded-xl p-3 shadow-sm border">
-                <div className="h-36 bg-gray-50 rounded overflow-hidden flex items-center justify-center">
-                  <img
-                    src={fd.product?.image_url}
-                    alt={fd.product?.title}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="mt-3 font-medium">{fd.product?.title}</div>
-                <div className="text-xs text-slate-500">
-                  {fd.discount_percent}% off
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Best Sellers */}
-      <section className="mt-12">
-        <h2 className="text-2xl font-semibold">Best Sellers</h2>
-        <div className="flex overflow-x-auto gap-4 mt-4 pb-4">
-          {bestSellers.map((bs: any) => (
-            <div key={bs.bestseller_id} className="min-w-[220px]">
-              <div className="bg-white rounded-xl p-3 shadow-sm border">
-                <div className="h-36 bg-gray-50 rounded overflow-hidden flex items-center justify-center">
-                  <img
-                    src={bs.product?.image_url}
-                    alt={bs.product?.title}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="mt-3 font-medium">{bs.product?.title}</div>
-                <div className="text-xs text-slate-500">Top seller</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
-
-  // ------------------------------------------
-  // Auction Home Layout
-  // ------------------------------------------
+  /* ------------------------------------------
+    Auction Home (kept simple for now)
+  ------------------------------------------ */
   const AuctionHome = () => (
-    <div className="container mx-auto px-6 py-12">
-      <div className="grid grid-cols-12 gap-8">
-        {/* Auction blocks */}
-        {auctionBlocks.map((block, i) => (
-          <div key={i} className="col-span-12 md:col-span-6 xl:col-span-3">
-            <CategoryBlockPremium block={block} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  <div className="container mx-auto px-6 py-12 space-y-10">
 
-  // -----------------------------
-  // Final Render
-  // -----------------------------
+    <CategoryGrid
+      title="Browse Auctions"
+      categories={categories}
+    />
+
+    <AuctionRow
+      title="Ending Soon"
+      auctions={endingSoon}
+    />
+
+    <AuctionRow
+      title="Hot Auctions"
+      auctions={hotAuctions}
+    />
+
+    <AuctionRow
+      title="New Auctions"
+      auctions={newAuctions}
+    />
+
+  </div>
+);
+
+
+
+  /* ------------------------------------------
+    Render
+  ------------------------------------------ */
   return (
-    <main className="bg-slate-50">
-      <HeroPremium />
-      {currentMode === "marketplace" ? <MarketplaceHome /> : <AuctionHome />}
+    <main className="bg-[#EAEDED] min-h-screen">
+      {/* Amazon-style Hero */}
+      <Hero banners={banners} />
+      {currentMode === "marketplace" && (
+        <>
+          <CategoryGrid
+            title="Shop by Category"
+            categories={categories}
+          />
+
+          <ProductRow
+            title="Flash Deals"
+            items={flashDeals}
+            type="flash"
+          />
+
+          <ProductRow
+            title="Best Sellers"
+            items={bestSellers}
+            type="bestseller"
+          />
+
+          <CuratedCategoryGrid
+            categories={categories}
+            blocks={[
+              {
+                title: "Deals on fashion",
+                categoryNames: ["Clothing", "Shoes", "Jewelry"],
+                footerText: "Shop all fashion deals",
+              },
+              {
+                title: "Level up your gaming",
+                categoryNames: ["Computers", "Electronics", "Games"],
+                footerText: "Shop the latest in gaming",
+              },
+              {
+                title: "Toys for all ages",
+                categoryNames: ["Toys", "Baby Products"],
+                footerText: "See all",
+              },
+              {
+                title: "Deals on top categories",
+                categoryNames: ["Books", "Beauty", "Computers"],
+                footerText: "Discover more",
+              },
+            ]}
+          />
+
+          <TopPicksRow
+            title="Top picks for Canada"
+            items={bestSellers.slice(0, 12)}
+          />
+
+
+        </>
+      )}
+
+
+      {/* Auction */}
+      {currentMode === "auction" && <AuctionHome />}
+
+      <SignInCTA isLoggedIn={isLoggedIn} />
     </main>
   );
 };
 
 export default HomePage;
-

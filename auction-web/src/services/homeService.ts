@@ -22,7 +22,6 @@ export async function fetchCategories(): Promise<Category[]> {
   const { data, error } = await supabase
     .from("categories")
     .select("*")
-    .order("name", { ascending: true });
   if (error) { console.error(error); return []; }
   return data || [];
 }
@@ -103,4 +102,49 @@ export async function fetchProductsByCategoryName(categoryName: string, limit = 
     return [];
   }
   return data || [];
+}
+export async function fetchProducts({
+  category,
+  search,
+  minPrice,
+  maxPrice,
+  minRating,
+  sort,
+  page = 1,
+  limit = 48,
+}: {
+  category?: string;
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minRating?: number;
+  sort?: string;
+  page?: number;
+  limit?: number;
+}) {
+  let query = supabase
+    .from("product_with_category")
+    .select("*", { count: "exact" });
+
+  if (category) query = query.eq("category", category);
+  if (search) query = query.ilike("title", `%${search}%`);
+  if (minPrice) query = query.gte("price", minPrice);
+  if (maxPrice) query = query.lte("price", maxPrice);
+  if (minRating) query = query.gte("avg_rating", minRating);
+
+  if (sort === "price_asc") query = query.order("price", { ascending: true });
+  if (sort === "price_desc") query = query.order("price", { ascending: false });
+  if (sort === "rating") query = query.order("avg_rating", { ascending: false });
+
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, count, error } = await query.range(from, to);
+
+  if (error) {
+    console.error(error);
+    return { data: [], count: 0 };
+  }
+
+  return { data, count };
 }
