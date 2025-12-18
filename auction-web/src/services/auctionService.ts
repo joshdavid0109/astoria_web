@@ -16,6 +16,19 @@ const productJoin = `
   )
 `;
 
+const productJoin1 = `
+  product:product!auction_product_id_fkey!inner (
+    product_id,
+    title,
+    description,
+    price,
+    category,
+    created_at,
+    images:product_images ( url )
+  )
+`;
+
+
 /**
  * Fetch auctions ending soon (closing soonest)
  */
@@ -95,9 +108,146 @@ export async function fetchNewAuctions(limit: number = 12) {
   return data || [];
 }
 
+interface FetchAuctionsParams {
+  category?: string;
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: string;
+  page?: number;
+  limit?: number;
+}
+
 /**
  * Optional: fetch single auction
  */
+export async function fetchAuctions({
+  category,
+  search,
+  minPrice,
+  maxPrice,
+  sort,
+  page = 1,
+  limit = 48,
+}: FetchAuctionsParams) {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  let query = supabase
+    .from("auction")
+    .select(
+      `
+      auction_id,
+      product_id,
+      start_price,
+      current_price,
+      start_time,
+      end_time,
+      ${productJoin1}
+      `,
+      { count: "exact" }
+    );
+
+  if (category) query = query.eq("product.category", category);
+  if (search) query = query.ilike("product.title", `%${search}%`);
+  if (minPrice) query = query.gte("current_price", minPrice);
+  if (maxPrice) query = query.lte("current_price", maxPrice);
+
+  if (sort === "price_asc")
+    query = query.order("current_price", { ascending: true });
+
+  if (sort === "price_desc")
+    query = query.order("current_price", { ascending: false });
+
+  if (sort === "ending_soon")
+    query = query.order("end_time", { ascending: true });
+
+  const { data, count, error } = await query.range(from, to);
+
+  if (error) {
+    console.error("❌ fetchAuctions error:", error);
+    return { data: [], count: 0 };
+  }
+  
+  console.log(data)
+
+  // ✅ NORMALIZE HERE (THIS IS THE FIX)
+  const normalized = (data || []).map((a: any) => ({
+
+    id: a.auction_id,                         // 👈 used by ProductsPage
+    title: a.product?.title,                 // 👈 FIX
+    image_url: a.product?.images?.[0]?.url   // 👈 FIX
+      || "/placeholder.png",
+    category: a.product?.category,
+    price: a.start_price,                    // optional (for UI reuse)
+    current_price: a.current_price,
+    start_time: a.start_time,
+    end_time: a.end_time,
+  }));
+
+  console.log(normalized)
+  return {
+    data: normalized,
+    count: count ?? 0,
+  };
+}
+
+
+
+
+
+
+// export async function fetchAuctions({
+//   category,
+//   search,
+//   minPrice,
+//   maxPrice,
+//   sort,
+//   page = 1,
+//   limit = 48,
+// }: {
+//   category?: string;
+//   search?: string;
+//   minPrice?: number;
+//   maxPrice?: number;
+//   sort?: string;
+//   page?: number;
+//   limit?: number;
+// }) {
+//   let query = supabase
+//     .from("auction_with_product")
+//     .select("*", { count: "exact" })
+//     .lte("start_time", new Date().toISOString())
+//     .gt("end_time", new Date().toISOString());
+
+//   if (category) query = query.eq("category", category);
+//   if (search) query = query.ilike("title", `%${search}%`);
+//   if (minPrice) query = query.gte("current_price", minPrice);
+//   if (maxPrice) query = query.lte("current_price", maxPrice);
+
+//   if (sort === "price_asc")
+//     query = query.order("current_price", { ascending: true });
+
+//   if (sort === "price_desc")
+//     query = query.order("current_price", { ascending: false });
+
+//   if (sort === "ending_soon")
+//     query = query.order("end_time", { ascending: true });
+
+//   const from = (page - 1) * limit;
+//   const to = from + limit - 1;
+
+//   const { data, count, error } = await query.range(from, to);
+
+//   console.log(data)
+
+//   if (error) {
+//     console.error("❌ fetchAuctions error:", error);
+//     return { data: [], count: 0 };
+//   }
+
+//   return { data, count };
+// }
 
 
 export async function fetchAuctionsByCategory(category: string) {
@@ -169,3 +319,4 @@ export async function placeBid(auctionId: number, amount: number) {
     throw error;
   }
 }
+

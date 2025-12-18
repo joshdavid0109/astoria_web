@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import type { Category } from "../../../services/homeService";
+import { useAppContext } from "../../../context/AppContext";
 
 interface Props {
   title: string;
@@ -9,6 +10,7 @@ interface Props {
 
 const CategoryGrid: React.FC<Props> = ({ title, categories }) => {
   const navigate = useNavigate();
+  const { currentMode } = useAppContext(); // 👈 detect marketplace vs auction
 
   if (!categories || categories.length === 0) return null;
 
@@ -17,6 +19,16 @@ const CategoryGrid: React.FC<Props> = ({ title, categories }) => {
   for (let i = 0; i < categories.length; i += 4) {
     cards.push(categories.slice(i, i + 4));
   }
+
+  const handleCategoryClick = (cat: Category) => {
+    if (currentMode === "auction") {
+      // 👉 auction-only category view
+      navigate(`/auctions?category=${encodeURIComponent(cat.name)}`);
+    } else {
+      // 👉 marketplace category view
+      navigate(`/products?category=${encodeURIComponent(cat.name)}`);
+    }
+  };
 
   return (
     <section className="max-w-[1500px] mx-auto px-4 mt-6">
@@ -27,23 +39,25 @@ const CategoryGrid: React.FC<Props> = ({ title, categories }) => {
             className="bg-white border border-gray-300 p-4 h-[390px] flex flex-col"
           >
             {/* Card title */}
-            <h2 className="text-lg font-bold mb-3">{title}</h2>
+            <h2 className="text-lg font-bold mb-3">
+              {currentMode === "auction" ? "Browse Auctions" : title}
+            </h2>
 
             {/* 2x2 grid */}
             <div className="grid grid-cols-2 gap-3 flex-1">
               {group.map((cat) => (
                 <button
                   key={cat.categories_id}
-                  onClick={() => navigate(`/products?category=${encodeURIComponent(cat.name)}`)}
+                  onClick={() => handleCategoryClick(cat)}
                   className="text-left group"
                 >
                   <div className="product-image-wrapper bg-gray-100 h-[120px] flex items-center justify-center">
                     <img
-                        src={cat.icon || "/placeholder.png"}
-                        alt={cat.name}
-                        className="product-image max-h-[80px] max-w-[80px] object-contain"
+                      src={cat.icon || "/placeholder.png"}
+                      alt={cat.name}
+                      className="product-image max-h-[80px] max-w-[80px] object-contain"
                     />
-                    </div>
+                  </div>
                   <div className="text-xs mt-1 leading-tight">
                     {cat.name}
                   </div>
@@ -52,7 +66,16 @@ const CategoryGrid: React.FC<Props> = ({ title, categories }) => {
             </div>
 
             {/* Footer link */}
-            <button className="text-sm text-blue-600 hover:underline mt-3 text-left">
+            <button
+              onClick={() => {
+                if (currentMode === "auction") {
+                  navigate("/auctions");
+                } else {
+                  navigate("/products");
+                }
+              }}
+              className="text-sm text-blue-600 hover:underline mt-3 text-left"
+            >
               See more
             </button>
           </div>

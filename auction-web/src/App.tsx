@@ -12,6 +12,7 @@ import './App.css';
 import CategoryPage from './pages/CategoryPage';
 import ProductsPage from './pages/ProductsPage';
 import AuctionDetailsPage from './pages/AuctionDetailsPage';
+import AuctionCategoryPage from './pages/AuctionCategoryPage';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/category/:name" element={<CategoryPage />} />
               <Route path="/auction/:id" element={<AuctionDetailsPage />} />
+              <Route path="/auctions/category/:id" element={<AuctionCategoryPage/>}/>
 
             </Routes>
           </main>
