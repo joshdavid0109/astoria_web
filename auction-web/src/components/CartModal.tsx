@@ -51,7 +51,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
                 {cart.map((item) => (
                   <div key={item.id} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
                     <img 
-                      src={item.image} 
+                      src={item.image ?? undefined} 
                       alt={item.title}
                       className="w-20 h-20 object-cover rounded-lg"
                     />

@@ -1,7 +1,14 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const HorizontalScrollBlockDynamic = ({ block }) => {
+interface Block {
+  title: string;
+  items: Array<{
+    name: string;
+    image?: string;
+  }>;
+}
+
+const HorizontalScrollBlockDynamic = ({ block } : {block: Block}) => {
   const navigate = useNavigate();
 
   return (
@@ -17,7 +24,7 @@ const HorizontalScrollBlockDynamic = ({ block }) => {
       </div>
 
       <div className="flex overflow-x-auto gap-4 pb-3">
-        {block.items.map((item) => (
+        {block.items.map((item: any) => (
           <button
             key={item.name}
             onClick={() => navigate(`/category/${encodeURIComponent(item.name)}`)}

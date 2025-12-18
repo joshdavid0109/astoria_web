@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Breadcrumbs from "../components/home/amazon/Breadcrumbs";
 import StarRating from "../components/home/amazon/StarRating";
-import ImageZoom from "../components/home/amazon/ImageZoom";
-import BuyBox from "../components/home/amazon/BuyBox";
 import { fetchProductById } from ".././services/productService";
 
 const ProductDetailsPage: React.FC = () => {

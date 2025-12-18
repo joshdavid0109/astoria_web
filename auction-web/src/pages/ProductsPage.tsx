@@ -35,7 +35,7 @@ const ProductsPage: React.FC = () => {
     }).then((res) => {
         console.log("products", res.data)
       setProducts(res.data);
-      setTotal(res.count);
+      setTotal(res.count ?? 0);
     });
   }, [category, search, page, sort, minRating, price]);
 

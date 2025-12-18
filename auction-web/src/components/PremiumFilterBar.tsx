@@ -20,15 +20,12 @@ interface PremiumFilterBarProps {
 const PremiumFilterBar: React.FC<PremiumFilterBarProps> = ({
   search,
   setSearch,
-  categories,
   selectedCategory,
-  setSelectedCategory,
   minPrice,
   maxPrice,
   setMinPrice,
   setMaxPrice,
   sort,
-  setSort,
 }) => {
   return (
     <div

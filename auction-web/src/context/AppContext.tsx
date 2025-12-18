@@ -8,7 +8,7 @@ interface AppContextType {
   // User state
   user: User | null;
   isLoggedIn: boolean;
-  login: (email: string, password: string) => boolean;
+  login: (email: string, password: string) => Promise<boolean>;
    register: (params: {
     name: string;
     email: string;

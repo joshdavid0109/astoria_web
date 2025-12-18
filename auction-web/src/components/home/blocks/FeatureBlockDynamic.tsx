@@ -1,7 +1,12 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const FeatureBlockDynamic = ({ block }) => {
+interface DynamicBlock {
+  title?: string;
+  items: any[];
+  description: string;
+}
+
+const FeatureBlockDynamic = ({ block } :{ block: DynamicBlock }) => {
   const navigate = useNavigate();
 
   return (
@@ -27,7 +32,7 @@ const FeatureBlockDynamic = ({ block }) => {
 
         {/* RIGHT IMAGE GRID */}
         <div className="grid grid-cols-2 gap-4 p-8">
-          {block.items.map((item) => (
+          {block.items.map((item: any) => (
             <button
               key={item.name}
               onClick={() => navigate(`/category/${encodeURIComponent(item.name)}`)}

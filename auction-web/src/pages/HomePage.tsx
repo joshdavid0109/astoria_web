@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import Hero from "../components/home/Hero";
 import CategoryGrid from "../components/home/amazon/CategoryGrid";
@@ -7,6 +6,7 @@ import ProductRow from "../components/home/amazon/ProductRow";
 import CuratedCategoryGrid from "../components/home/amazon/CuratedGrid";
 import SignInCTA from "../components/home/amazon/SIgnInCTA";
 import TopPicksRow from "../components/home/amazon/TopPicksRow";
+import AuctionRow from "../components/home/auction/AuctionRow";
 
 import { useAppContext } from "../context/AppContext";
 
@@ -22,7 +22,6 @@ import {
   fetchHotAuctions,
   fetchNewAuctions,
 } from "../services/auctionService";
-import AuctionRow from "../components/home/auction/AuctionRow";
 
 /* ------------------------------------------
  Types
@@ -37,13 +36,11 @@ type CategoryRow = {
  Component
 ------------------------------------------ */
 const HomePage: React.FC = () => {
-  const navigate = useNavigate();
-  const { currentMode, isLoggedIn} = useAppContext();
+  const { currentMode, isLoggedIn } = useAppContext();
 
   /* ---------- Shared ---------- */
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [banners, setBanners] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   /* ---------- Marketplace ---------- */
   const [flashDeals, setFlashDeals] = useState<any[]>([]);
@@ -58,95 +55,81 @@ const HomePage: React.FC = () => {
     Data Load
   ------------------------------------------ */
   useEffect(() => {
+    let isMounted = true;
+
     async function load() {
-      setLoading(true);
+      try {
+        // Categories (always)
+        const cats = await fetchCategories();
+        if (isMounted) setCategories(cats || []);
 
-      // Categories (always)
-      const cats = await fetchCategories();
-      setCategories(cats || []);
+        // Banners (always)
+        const b = await fetchActiveBanners();
+        if (isMounted) setBanners(b || []);
 
-      // Banners (always)
-      const b = await fetchActiveBanners();
-      setBanners(b || []);
+        if (currentMode === "marketplace") {
+          const [f, bs] = await Promise.all([
+            fetchFlashDeals(12),
+            fetchBestSellers(12),
+          ]);
 
-      // Marketplace-specific
-      if (currentMode === "marketplace") {
-        const [f, bs] = await Promise.all([
-          fetchFlashDeals(12),
-          fetchBestSellers(12),
-        ]);
-        setFlashDeals(f || []);
-        setBestSellers(bs || []);
+          if (isMounted) {
+            setFlashDeals(f || []);
+            setBestSellers(bs || []);
+          }
+        }
+
+        if (currentMode === "auction") {
+          const [end, hot, newer] = await Promise.all([
+            fetchEndingSoonAuctions(),
+            fetchHotAuctions(),
+            fetchNewAuctions(),
+          ]);
+
+          if (isMounted) {
+            setEndingSoon(end || []);
+            setHotAuctions(hot || []);
+            setNewAuctions(newer || []);
+          }
+        }
+      } catch (err) {
+        console.error("❌ HomePage load error:", err);
+      } finally {
       }
-
-      // Auction-specific
-      if (currentMode === "auction") {
-        const [end, hot, newer] = await Promise.all([
-          fetchEndingSoonAuctions(),
-          fetchHotAuctions(),
-          fetchNewAuctions(),
-        ]);
-        setEndingSoon(end || []);
-        setHotAuctions(hot || []);
-        setNewAuctions(newer || []);
-      }
-
-      setLoading(false);
     }
 
     load();
+
+    return () => {
+      isMounted = false;
+    };
   }, [currentMode]);
 
   /* ------------------------------------------
-    Auction Home (kept simple for now)
+    Auction Home
   ------------------------------------------ */
   const AuctionHome = () => (
-  <div className="container mx-auto px-6 py-12 space-y-10">
+    <div className="container mx-auto px-6 py-12 space-y-10">
+      <CategoryGrid title="Browse Auctions" categories={categories} />
 
-    <CategoryGrid
-      title="Browse Auctions"
-      categories={categories}
-    />
-
-    <AuctionRow
-      title="Ending Soon"
-      auctions={endingSoon}
-    />
-
-    <AuctionRow
-      title="Hot Auctions"
-      auctions={hotAuctions}
-    />
-
-    <AuctionRow
-      title="New Auctions"
-      auctions={newAuctions}
-    />
-
-  </div>
-);
-
-
+      <AuctionRow title="Ending Soon" auctions={endingSoon} />
+      <AuctionRow title="Hot Auctions" auctions={hotAuctions} />
+      <AuctionRow title="New Auctions" auctions={newAuctions} />
+    </div>
+  );
 
   /* ------------------------------------------
     Render
   ------------------------------------------ */
   return (
     <main className="bg-[#EAEDED] min-h-screen">
-      {/* Amazon-style Hero */}
       <Hero banners={banners} />
+
       {currentMode === "marketplace" && (
         <>
-          <CategoryGrid
-            title="Shop by Category"
-            categories={categories}
-          />
+          <CategoryGrid title="Shop by Category" categories={categories} />
 
-          <ProductRow
-            title="Flash Deals"
-            items={flashDeals}
-            type="flash"
-          />
+          <ProductRow title="Flash Deals" items={flashDeals} type="flash" />
 
           <ProductRow
             title="Best Sellers"
@@ -184,13 +167,9 @@ const HomePage: React.FC = () => {
             title="Top picks for Canada"
             items={bestSellers.slice(0, 12)}
           />
-
-
         </>
       )}
 
-
-      {/* Auction */}
       {currentMode === "auction" && <AuctionHome />}
 
       <SignInCTA isLoggedIn={isLoggedIn} />

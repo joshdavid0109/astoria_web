@@ -35,7 +35,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   isInWatchList, 
   onToggleWatchList 
 }) => {
-  const [bidAmount, setBidAmount] = useState(item.currentBid + item.minBidIncrement);
+  const minIncrement: number = item.minBidIncrement ?? 1;
+  const [bidAmount, setBidAmount] = useState(item.currentBid + minIncrement);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -78,6 +79,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     console.log(`Bid submitted: ${amount} for item ${itemId}`);
     // Update auction item with new bid
   };
+  const timeRemaining = item.endTime
+  ? getTimeRemaining(item.endTime)
+  : { display: "Auction Ended", urgent: false };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -215,17 +220,17 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="relative">
                 <img
-                  src={item.image}
+                  src={item.image ?? undefined}
                   alt={item.title}
                   className="w-full h-96 object-cover"
                 />
                 
                 {/* Time Badge */}
                 <div className={`absolute top-4 right-4 px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-2 ${
-                  getTimeRemaining(item.endTime).urgent ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'
+                  timeRemaining.urgent ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'
                 }`}>
                   <Clock className="h-4 w-4" />
-                  <span>{getTimeRemaining(item.endTime).display}</span>
+                  <span>{timeRemaining.display}</span>
                 </div>
                 
                 {/* Discount Badge */}
@@ -244,7 +249,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                       key={index}
                       className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-500 transition-colors"
                     >
-                      <img src={img} alt={`Gallery ${index + 1}`} className="w-full h-full object-cover" />
+                      <img src={img ?? undefined} alt={`Gallery ${index + 1}`} className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>
@@ -274,7 +279,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium text-gray-900">Next bid</div>
-                    <div className="text-lg font-bold text-blue-600">${item.currentBid + item.minBidIncrement}</div>
+                    <div className="text-lg font-bold text-blue-600">${item.currentBid + minIncrement}</div>
                   </div>
                 </div>
               </div>
@@ -294,7 +299,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <button
-                      onClick={() => setBidAmount(Math.max(item.currentBid + item.minBidIncrement, bidAmount - item.minBidIncrement))}
+                      onClick={() => setBidAmount(Math.max(item.currentBid + minIncrement, bidAmount - minIncrement))}
                       className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       <Minus className="h-4 w-4" />
@@ -306,12 +311,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                         value={bidAmount}
                         onChange={(e) => setBidAmount(Number(e.target.value))}
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-semibold"
-                        min={item.currentBid + item.minBidIncrement}
-                        step={item.minBidIncrement}
+                        min={item.currentBid + minIncrement}
+                        step={minIncrement}
                       />
                     </div>
                     <button
-                      onClick={() => setBidAmount(bidAmount + item.minBidIncrement)}
+                      onClick={() => setBidAmount(bidAmount + minIncrement)}
                       className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       <Plus className="h-4 w-4" />
@@ -320,16 +325,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => setBidAmount(item.currentBid + item.minBidIncrement)}
+                      onClick={() => setBidAmount(item.currentBid + minIncrement)}
                       className="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
                     >
-                      Min: PHP {item.currentBid + item.minBidIncrement}
+                      Min: PHP {item.currentBid + minIncrement}
                     </button>
                     <button
-                      onClick={() => setBidAmount(item.currentBid + item.minBidIncrement * 5)}
+                      onClick={() => setBidAmount(item.currentBid + minIncrement * 5)}
                       className="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
                     >
-                      +PHP {item.minBidIncrement * 5}
+                      +PHP {minIncrement * 5}
                     </button>
                   </div>
                 </div>
@@ -483,7 +488,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Seller Information</h3>
               <div className="flex items-center space-x-4 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                  {item.seller.charAt(0)}
+                  {item.seller?.charAt(0) ?? "?"}
                 </div>
                 <div>
                   <div className="font-semibold text-gray-900">{item.seller}</div>

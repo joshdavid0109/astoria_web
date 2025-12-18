@@ -1,5 +1,3 @@
-import React from "react";
-
 const ImageZoom = ({ src }: { src?: string }) => {
   if (!src) return null;
 

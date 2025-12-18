@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ShoppingCart, User } from "lucide-react";
+import { Search, ShoppingCart } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import CartModal from "./CartModal";
 
