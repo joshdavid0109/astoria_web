@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 
 const LoginPage: React.FC = () => {
@@ -14,7 +14,6 @@ const LoginPage: React.FC = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    rememberMe: false,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -22,23 +21,16 @@ const LoginPage: React.FC = () => {
     setErrorMsg("");
 
     if (!formData.email || !formData.password) {
-      setErrorMsg("Please enter your email and password.");
-      return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setErrorMsg("Please enter a valid email address.");
+      setErrorMsg("Enter your email and password.");
       return;
     }
 
     setLoading(true);
-
-    // 🔥 Use AppContext login()
     const success = await login(formData.email, formData.password);
     setLoading(false);
 
     if (!success) {
-      setErrorMsg("Login failed. Check your email or password.");
+      setErrorMsg("Incorrect email or password.");
       return;
     }
 
@@ -46,136 +38,100 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
+    <main className="bg-[#EAEDED] min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
 
-        {/* Back Button */}
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center text-orange-600 hover:text-orange-700 mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Home
-        </button>
+        {/* LOGO */}
+        <div className="text-center mb-4">
+          <img
+            src="/src/assets/astoria_Logo_gray-nobg.png"
+            className="mx-auto h-12 mb-2"
+          />
+          <h1 className="text-xl font-semibold">Sign in</h1>
+        </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">
-              Welcome Back!
-            </h1>
-            <p className="text-gray-600">
-              Sign in to your StorageMax account
-            </p>
-          </div>
-
-          {/* Error */}
+        {/* CARD */}
+        <div className="bg-white border border-gray-300 rounded-md p-6">
           {errorMsg && (
-            <div className="mb-4 bg-red-100 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className="mb-3 text-sm text-red-600">
               {errorMsg}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* EMAIL */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+              <label className="block text-sm font-medium mb-1">
+                Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                  placeholder="Enter your email"
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none"
                 />
               </div>
             </div>
 
-            {/* Password */}
+            {/* PASSWORD */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-1">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                  placeholder="Enter your password"
+                  className="w-full pl-9 pr-9 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-orange-500 outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-2.5 text-gray-400"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
-            {/* Remember Me */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.rememberMe}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      rememberMe: e.target.checked,
-                    })
-                  }
-                  className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
-                />
-                <span className="ml-2 text-sm text-gray-600">Remember me</span>
-              </label>
-
-              <button
-                type="button"
-                className="text-sm text-orange-600 hover:text-orange-700"
-              >
-                Forgot password?
-              </button>
-            </div>
-
-            {/* Submit */}
+            {/* SUBMIT */}
             <button
               type="submit"
               disabled={loading}
-              className={`w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg font-medium transition-colors ${
-                loading ? "opacity-70 cursor-not-allowed" : ""
-              }`}
+              className="w-full bg-[#FFD814] hover:bg-[#F7CA00] py-2 rounded-md font-medium text-sm"
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
 
-          {/* Footer */}
-          <div className="mt-6 text-center">
-            <span className="text-gray-600">Don't have an account? </span>
-            <button
-              onClick={() => navigate("/register")}
-              className="text-orange-600 hover:text-orange-700 font-medium"
-            >
-              Sign up
+          {/* LINKS */}
+          <div className="mt-4 text-sm">
+            <button className="text-blue-600 hover:underline">
+              Forgot password?
             </button>
           </div>
         </div>
+
+        {/* FOOTER */}
+        <div className="mt-4 text-center text-sm">
+          New to Astoria?{" "}
+          <button
+            onClick={() => navigate("/register")}
+            className="text-blue-600 hover:underline"
+          >
+            Create your account
+          </button>
+        </div>
       </div>
-    </div>
+    </main>
   );
 };
 
