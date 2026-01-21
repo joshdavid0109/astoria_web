@@ -44,7 +44,7 @@ const LoginPage: React.FC = () => {
         {/* LOGO */}
         <div className="text-center mb-4">
           <img
-            src="/src/assets/astoria_Logo_gray-nobg.png"
+            src="https://tkilxxlwkhlexitzyqiu.supabase.co/storage/v1/object/public/icons/Astoria_Logo_gray-nobg.png"
             className="mx-auto h-12 mb-2"
           />
           <h1 className="text-xl font-semibold">Sign in</h1>
