@@ -172,7 +172,9 @@ const Header: React.FC = () => {
       <div className="bg-[#232f3e] text-white text-sm">
         <div className="max-w-[1500px] mx-auto px-4">
           <div className="flex items-center h-[40px] gap-6">
-            <button className="font-semibold hover:underline">All</button>
+            <button 
+              onClick={() => navigate("/")}
+              className="font-semibold hover:underline">All</button>
             <button
                 onClick={() => navigate("/todays-deals")}
                 className="hover:underline">Today's Deals</button>
