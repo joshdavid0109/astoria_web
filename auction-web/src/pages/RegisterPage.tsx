@@ -46,7 +46,7 @@ const RegisterPage: React.FC = () => {
             src="https://tkilxxlwkhlexitzyqiu.supabase.co/storage/v1/object/public/icons/Astoria_Logo_gray-nobg.png"
             className="mx-auto h-12 mb-2"
           />
-          <h1 className="text-xl font-semibold">Create accounx</h1>
+          <h1 className="text-xl font-semibold">Create account</h1>
         </div>
 
         {/* CARD */}
