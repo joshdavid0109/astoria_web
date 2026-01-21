@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ShoppingCart } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import CartModal from "./CartModal";
 import { useEffect, useRef } from "react";
+import { Search, ShoppingCart, User } from "lucide-react";
+
 
 
 const Header: React.FC = () => {
@@ -50,6 +51,18 @@ const Header: React.FC = () => {
   }, []);
 
 
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return;
+
+    const q = encodeURIComponent(searchQuery.trim());
+
+    if (currentMode === "auction") {
+      navigate(`/auctions?search=${q}`);
+    } else {
+      navigate(`/products?search=${q}`);
+    }
+  };
+
     
 
   return (
@@ -64,7 +77,7 @@ const Header: React.FC = () => {
       {/* ===================== TOP BAR ===================== */}
       <header className="bg-[#131921] text-white">
         <div className="max-w-[1500px] mx-auto px-4">
-          <div className="flex items-center h-[60px] gap-4">
+          <div className="flex items-center h-[60px] gap-6">
             {/* LOGO */}
             <button
               onClick={() => navigate("/")}
@@ -78,42 +91,68 @@ const Header: React.FC = () => {
             </button>
 
             {/* SEARCH */}
-            <div className="flex flex-1 max-w-4xl">
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search Astoria"
-                className="flex-1 h-[40px] px-3 text-white text-sm focus:outline-none"
-              />
-              <button className="w-[45px] bg-[#febd69] hover:bg-[#f3a847] flex items-center justify-center">
-                <Search className="w-5 h-5 text-black" />
-              </button>
+            <div className="flex flex-1 justify-center">
+              <div className="flex w-full max-w-[720px]">              
+                 <input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSearch();
+                    }}
+                    placeholder="Search Astoria"
+                    className="flex-1 h-[40px] px-3 text-white text-sm focus:outline-none"
+                  />
+                <button
+                  onClick={handleSearch}
+                  className="w-[45px] bg-[#febd69] hover:bg-[#f3a847] flex items-center justify-center"
+                >
+                  <Search className="w-5 h-5 text-black" />
+                </button>
+              </div>
             </div>
 
             {/* ACCOUNT */}
-            <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-8 text-sm ml-4">
               {isLoggedIn ? (
                 <button
                   onClick={logout}
-                  className="hover:outline hover:outline-1 hover:outline-white px-2 py-1 text-left"
+                  className="
+                    flex items-center gap-2
+                    hover:outline hover:outline-1 hover:outline-white
+                    px-2 py-1
+                  "
                 >
-                  <div className="text-xs">Hello</div>
-                  <div className="font-semibold">Logout</div>
+                  <User className="w-5 h-5 text-white" />
+                  <div className="text-left leading-tight">
+                    <div className="text-xs">Hello</div>
+                    <div className="font-semibold">Logout</div>
+                  </div>
                 </button>
               ) : (
                 <button
                   onClick={() => navigate("/login")}
-                  className="hover:outline hover:outline-1 hover:outline-white px-2 py-1 text-left"
+                  className="
+                    flex items-center gap-2
+                    hover:outline hover:outline-1 hover:outline-white
+                    px-2 py-1
+                  "
                 >
-                  <div className="text-xs">Hello, sign in</div>
-                  <div className="font-semibold">Account</div>
+                  <User className="w-5 h-5 text-white" />
+                  <div className="text-left leading-tight">
+                    <div className="text-xs">Hello, sign in</div>
+                    <div className="font-semibold">Account</div>
+                  </div>
                 </button>
               )}
 
               {/* CART */}
               <button
-                onClick={() => navigate('/cart')}
-                className="relative flex items-center hover:outline hover:outline-1 hover:outline-white px-2 py-1"
+                onClick={() => navigate("/cart")}
+                className="
+                  relative flex items-center gap-1
+                  hover:outline hover:outline-1 hover:outline-white
+                  px-2 py-1
+                "
               >
                 <ShoppingCart className="w-6 h-6" />
                 {cartCount > 0 && (
@@ -121,9 +160,10 @@ const Header: React.FC = () => {
                     {cartCount}
                   </span>
                 )}
-                <span className="ml-1 font-semibold">Cart</span>
+                <span className="font-semibold">Cart</span>
               </button>
             </div>
+
           </div>
         </div>
       </header>
