@@ -97,7 +97,7 @@ const AuctionRow = ({
 
             {/* CURRENT BID */}
             <div className="mt-1 text-sm font-semibold">
-              CAD ${a.current_bid || a.start_price}
+              CAD ${a.current_price || a.start_price}
             </div>
 
             {/* META */}

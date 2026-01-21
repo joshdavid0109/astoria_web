@@ -33,7 +33,7 @@ const AuctionCard = ({ auction }: { auction: any }) => {
 
       <div className="mt-1 text-sm">
         <span className="font-semibold">
-          CAD ${auction.current_bid || auction.start_price}
+          CAD ${auction.current_price || auction.start_price}
         </span>
       </div>
 

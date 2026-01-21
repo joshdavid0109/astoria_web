@@ -84,7 +84,7 @@ const AuctionPage: React.FC = () => {
               >
                 {/* IMAGE */}
                 <div
-                  onClick={() => navigate(`/auction/${auction.id}`)}
+                  onClick={() => navigate(`/auction/${auction.auction_id}`)}
                   className="h-[220px] bg-gray-100 flex items-center justify-center mb-2 cursor-pointer overflow-hidden"
                 >
                   <img
