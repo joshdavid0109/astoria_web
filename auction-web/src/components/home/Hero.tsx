@@ -44,7 +44,7 @@ const AmazonHero: React.FC<AmazonHeroProps> = ({ banners }) => {
     <div className="relative bg-[#EAEDED]">
       {/* HERO IMAGE */}
       <div
-        className="w-full h-[180px] bg-center bg-cover cursor-pointer"
+        className="w-full h-[280px] bg-center bg-cover cursor-pointer"
         style={{
           backgroundImage: `url(${active?.image_url || "/placeholder-banner.jpg"})`,
         }}

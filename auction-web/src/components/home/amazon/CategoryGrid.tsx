@@ -31,7 +31,7 @@ const CategoryGrid: React.FC<Props> = ({ title, categories }) => {
   };
 
   return (
-    <section className="max-w-[1500px] mx-auto px-4 mt-6">
+    <section className="max-w-[1500px] mx-auto px-4 mt-10">
       <div className="grid grid-cols-4 gap-5">
         {cards.slice(0, 4).map((group, idx) => (
           <div

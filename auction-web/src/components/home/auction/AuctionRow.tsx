@@ -39,7 +39,7 @@ const AuctionRow = ({
 
 
   return (
-    <section className="bg-white  rounded-lg p-5 m-10">
+    <section className="bg-white max-w-[1500px] mx-auto p-5 px-4 mt-10">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
