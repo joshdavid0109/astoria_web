@@ -3,7 +3,7 @@ import { ChevronDown } from "lucide-react";
 
 const SimilarAuctionsDropdown = ({
 }: {
-  productId?: number;
+  productId?: number;               
 }) => {
   const [open, setOpen] = useState(false);
 
