@@ -81,14 +81,15 @@ const Header: React.FC = () => {
             {/* LOGO */}
             <button
               onClick={() => navigate("/")}
-              className="flex items-center hover:outline hover:outline-1 hover:outline-white px-2 py-1"
+              className="hover:outline hover:outline-1 hover:outline-white px-2 py-1"
             >
               <img
-                src="https://tkilxxlwkhlexitzyqiu.supabase.co/storage/v1/object/public/icons/astoria_white-nobg.png"
+                src="https://tkilxxlwkhlexitzyqiu.supabase.co/storage/v1/object/public/icons/full_astoria-whitenobg.png"
                 alt="Astoria"
-                className="h-8"
+                className="h-20"
               />
             </button>
+
 
             {/* SEARCH */}
             <div className="flex flex-1 justify-center">
