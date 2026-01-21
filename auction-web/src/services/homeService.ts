@@ -69,25 +69,62 @@ export async function fetchEndingSoonAuctions(limit = 10): Promise<AuctionRow[]>
   return data || [];
 }
 
-export async function fetchFlashDeals(limit = 12): Promise<(FlashDealRow & { product?: ProductRow })[]> {
+export async function fetchFlashDeals(
+  limit = 12
+): Promise<(FlashDealRow & {
+  product?: ProductRow & { images?: { url: string }[] }
+})[]> {
   const { data, error } = await supabase
     .from("flash_deals")
-    .select("*, product:product_id(*)")
+    .select(`
+      *,
+      product:product_id (
+        *,
+        images:product_images (
+          url
+        )
+      )
+    `)
     .order("discount_percent", { ascending: false })
     .limit(limit);
-  if (error) { console.error(error); return []; }
+
+  if (error) {
+    console.error("fetchFlashDeals", error);
+    return [];
+  }
+
   return data || [];
 }
 
-export async function fetchBestSellers(limit = 12): Promise<(BestSellerRow & { product?: ProductRow })[]> {
+
+export async function fetchBestSellers(
+  limit = 12
+): Promise<(BestSellerRow & {
+  product?: ProductRow & { images?: { url: string }[] }
+})[]> {
   const { data, error } = await supabase
     .from("best_seller")
-    .select("*, product:product_id(*)")
+    .select(`
+      *,
+      product:product_id (
+        *,
+        images:product_images (
+          url
+        )
+      )
+    `)
     .order("ranking", { ascending: true })
     .limit(limit);
-  if (error) { console.error(error); return []; }
+
+  if (error) {
+    console.error("fetchBestSellers", error);
+    return [];
+  }
+
   return data || [];
 }
+
+
 export async function fetchProductsByCategoryName(categoryName: string, limit = 24) {
   if (!categoryName) return [];
   const { data, error } = await supabase

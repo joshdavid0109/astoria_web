@@ -24,12 +24,12 @@ const TopPicksRow: React.FC<Props> = ({ title, items }) => {
             return (
               <button
                 key={product.id}
-                onClick={() => navigate(`/product/${product.id}`)}
+                onClick={() => navigate(`/product/${product.product_id}`)}
                 className="min-w-[180px] max-w-[180px] text-left"
               >
                 <div className="product-image-wrapper bg-gray-100 h-[160px] flex items-center justify-center mb-2">
                   <img
-                    src={product.image_url}
+                    src={product.images?.[0]?.url || "/placeholder.png"}
                     alt={product.title}
                     className="product-image object-contain max-h-[140px]"
                   />

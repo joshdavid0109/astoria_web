@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Search, ShoppingCart } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import CartModal from "./CartModal";
+import { useEffect, useRef } from "react";
+
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -17,9 +19,48 @@ const Header: React.FC = () => {
   } = useAppContext();
 
   const [showCart, setShowCart] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Always show header near top
+      if (currentScrollY < 80) {
+        setVisible(true);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+
+      // scrolling down → hide
+      if (currentScrollY > lastScrollY.current) {
+        setVisible(false);
+      } 
+      // scrolling up → show
+      else {
+        setVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+
+    
 
   return (
     <>
+    <div
+      className={`
+        fixed top-0 left-0 w-full z-50
+        transition-transform duration-300 ease-in-out
+        ${visible ? "translate-y-0" : "-translate-y-full"}
+      `}
+    >
       {/* ===================== TOP BAR ===================== */}
       <header className="bg-[#131921] text-white">
         <div className="max-w-[1500px] mx-auto px-4">
@@ -30,7 +71,7 @@ const Header: React.FC = () => {
               className="flex items-center hover:outline hover:outline-1 hover:outline-white px-2 py-1"
             >
               <img
-                src="/src/assets/astoria_white-nobg.png"
+                src="https://tkilxxlwkhlexitzyqiu.supabase.co/storage/v1/object/public/icons/astoria_white-nobg.png"
                 alt="Astoria"
                 className="h-8"
               />
@@ -71,7 +112,7 @@ const Header: React.FC = () => {
 
               {/* CART */}
               <button
-                onClick={() => setShowCart(true)}
+                onClick={() => navigate('/cart')}
                 className="relative flex items-center hover:outline hover:outline-1 hover:outline-white px-2 py-1"
               >
                 <ShoppingCart className="w-6 h-6" />
@@ -122,6 +163,7 @@ const Header: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       <CartModal isOpen={showCart} onClose={() => setShowCart(false)} />

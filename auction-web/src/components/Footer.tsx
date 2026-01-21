@@ -73,7 +73,7 @@ const Footer: React.FC = () => {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <img
-              src="/src/assets/astoria_white-nobg.png"
+              src="https://tkilxxlwkhlexitzyqiu.supabase.co/storage/v1/object/public/icons/astoria_white-nobg.png"
               alt="Astoria"
               className="h-8"
             />

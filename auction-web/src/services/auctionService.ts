@@ -16,17 +16,27 @@ const productJoin = `
   )
 `;
 
-const productJoin1 = `
-  product:product!auction_product_id_fkey!inner (
-    product_id,
-    title,
-    description,
-    price,
+  async function getProductIdsByFilter({
     category,
-    created_at,
-    images:product_images ( url )
-  )
-`;
+    search,
+  }: {
+    category?: string;
+    search?: string;
+  }) {
+    let q = supabase.from("product").select("product_id");
+
+    if (category) q = q.ilike("category", `%${category}%`);
+    if (search) q = q.ilike("title", `%${search}%`);
+
+    const { data, error } = await q;
+
+    if (error) {
+      console.error("getProductIdsByFilter", error);
+      return [];
+    }
+
+    return data.map(p => p.product_id);
+  }
 
 
 /**
@@ -133,6 +143,15 @@ export async function fetchAuctions({
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
+  const productIds =
+    category || search
+      ? await getProductIdsByFilter({ category, search })
+      : null;
+
+      console.log("FILTER:", { category, search });
+    console.log("PRODUCT IDS:", productIds);
+
+
   let query = supabase
     .from("auction")
     .select(
@@ -143,55 +162,48 @@ export async function fetchAuctions({
       current_price,
       start_time,
       end_time,
-      ${productJoin1}
+      ${productJoin}
       `,
       { count: "exact" }
-    );
+    )
+    .range(from, to);
 
-  if (category) query = query.eq("product.category", category);
-  if (search) query = query.ilike("product.title", `%${search}%`);
-  if (minPrice) query = query.gte("current_price", minPrice);
-  if (maxPrice) query = query.lte("current_price", maxPrice);
+  if (productIds && productIds.length === 0) {
+    return { data: [], count: 0 };
+  }
+
+  if (productIds) {
+    query = query.in("product_id", productIds);
+  }
+
+  if (minPrice !== undefined)
+    query = query.gte("current_price", minPrice);
+  if (maxPrice !== undefined)
+    query = query.lte("current_price", maxPrice);
 
   if (sort === "price_asc")
     query = query.order("current_price", { ascending: true });
-
-  if (sort === "price_desc")
+  else if (sort === "price_desc")
     query = query.order("current_price", { ascending: false });
-
-  if (sort === "ending_soon")
+  else if (sort === "ending_soon")
     query = query.order("end_time", { ascending: true });
+  else
+    query = query.order("start_time", { ascending: false });
 
-  const { data, count, error } = await query.range(from, to);
+  const { data, count, error } = await query;
 
   if (error) {
-    console.error("❌ fetchAuctions error:", error);
+    console.error("fetchAuctions", error);
     return { data: [], count: 0 };
   }
-  
-  console.log(data)
 
-  // ✅ NORMALIZE HERE (THIS IS THE FIX)
-  const normalized = (data || []).map((a: any) => ({
+  console.log("✅ AUCTIONS FETCHED:", data);
 
-    id: a.auction_id,                         // 👈 used by ProductsPage
-    title: a.product?.title,                 // 👈 FIX
-    image_url: a.product?.images?.[0]?.url   // 👈 FIX
-      || "/placeholder.png",
-    category: a.product?.category,
-    price: a.start_price,                    // optional (for UI reuse)
-    current_price: a.current_price,
-    start_time: a.start_time,
-    end_time: a.end_time,
-  }));
-
-  console.log(normalized)
   return {
-    data: normalized,
+    data: data || [],
     count: count ?? 0,
   };
 }
-
 
 
 
@@ -281,8 +293,25 @@ export async function fetchAuctionsByCategory(category: string) {
 export async function fetchAuctionById(auctionId: string) {
   const { data, error } = await supabase
     .from("auction")
-    .select(`*,
-      product:product_id(*)`)
+    .select(`
+      auction_id,
+      product_id,
+      start_price,
+      current_price,
+      start_time,
+      end_time,
+      product:product_id (
+        product_id,
+        title,
+        description,
+        category,
+        price,
+        status,
+        images:product_images (
+          url
+        )
+      )
+    `)
     .eq("auction_id", auctionId)
     .single();
 
@@ -294,9 +323,10 @@ export async function fetchAuctionById(auctionId: string) {
   return data;
 }
 
+
 export async function fetchAuctionBids(auctionId: string) {
   const { data, error } = await supabase
-    .from("auction")
+    .from("bid")
     .select("*")
     .eq("auction_id", auctionId)
     .order("created_at", { ascending: false });
@@ -306,17 +336,48 @@ export async function fetchAuctionBids(auctionId: string) {
     return [];
   }
 
-  return data;
+  return data || [];
 }
 
-export async function placeBid(auctionId: number, amount: number) {
-  const { error } = await supabase.from("auction_bid").insert({
-    auction_id: auctionId,
-    bid_amount: amount,
-  });
 
-  if (error) {
-    throw error;
+// src/services/auctionService.ts
+export async function placeBid(
+  auctionId: number,
+  amount: number
+) {
+  // 1️⃣ Get logged-in user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("You must be logged in to place a bid");
+  }
+
+  // 2️⃣ Insert bid with bidder_id
+  const { error: bidError } = await supabase
+    .from("bid")
+    .insert({
+      auction_id: auctionId,
+      bidder_id: user.id,   // ✅ FIX
+      bid_amount: amount,
+    });
+
+  if (bidError) {
+    console.error("placeBid insert error", bidError);
+    throw bidError;
+  }
+
+  // 3️⃣ Update auction price
+  const { error: auctionError } = await supabase
+    .from("auction")
+    .update({ current_price: amount })
+    .eq("auction_id", auctionId);
+
+  if (auctionError) {
+    console.error("placeBid update error", auctionError);
+    throw auctionError;
   }
 }
 

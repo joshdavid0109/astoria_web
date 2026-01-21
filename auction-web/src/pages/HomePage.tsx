@@ -106,75 +106,89 @@ const HomePage: React.FC = () => {
   }, [currentMode]);
 
   /* ------------------------------------------
-    Auction Home
-  ------------------------------------------ */
-  const AuctionHome = () => (
-    <div className="container mx-auto px-6 py-12 space-y-10">
-      <CategoryGrid title="Browse Auctions" categories={categories} />
-
-      <AuctionRow title="Ending Soon" auctions={endingSoon} />
-      <AuctionRow title="Hot Auctions" auctions={hotAuctions} />
-      <AuctionRow title="New Auctions" auctions={newAuctions} />
-    </div>
-  );
-
-  /* ------------------------------------------
     Render
   ------------------------------------------ */
   return (
-    <main className="bg-[#EAEDED] min-h-screen">
-      <Hero banners={banners} />
+  <main className="bg-[#EAEDED] min-h-screen">
+    <Hero banners={banners} />
 
-      {currentMode === "marketplace" && (
-        <>
-          <CategoryGrid title="Shop by Category" categories={categories} />
+    {/* ================== MARKETPLACE MODE ================== */}
+    {currentMode === "marketplace" && (
+      <>
+        <CategoryGrid title="Shop by Category" categories={categories} />
 
-          <ProductRow title="Flash Deals" items={flashDeals} type="flash" />
+        <ProductRow title="Flash Deals" items={flashDeals} type="flash" />
 
-          <ProductRow
-            title="Best Sellers"
-            items={bestSellers}
-            type="bestseller"
-          />
+        <ProductRow
+          title="Best Sellers"
+          items={bestSellers}
+          type="bestseller"
+        />
 
-          <CuratedCategoryGrid
-            categories={categories}
-            blocks={[
-              {
-                title: "Deals on fashion",
-                categoryNames: ["Clothing", "Shoes", "Jewelry"],
-                footerText: "Shop all fashion deals",
-              },
-              {
-                title: "Level up your gaming",
-                categoryNames: ["Computers", "Electronics", "Games"],
-                footerText: "Shop the latest in gaming",
-              },
-              {
-                title: "Toys for all ages",
-                categoryNames: ["Toys", "Baby Products"],
-                footerText: "See all",
-              },
-              {
-                title: "Deals on top categories",
-                categoryNames: ["Books", "Beauty", "Computers"],
-                footerText: "Discover more",
-              },
-            ]}
-          />
+        <CuratedCategoryGrid
+          categories={categories}
+          blocks={[
+            {
+              title: "Deals on fashion",
+              categoryNames: ["Clothing", "Shoes", "Jewelry"],
+              footerText: "Shop all fashion deals",
+            },
+            {
+              title: "Level up your gaming",
+              categoryNames: ["Computers", "Electronics", "Games"],
+              footerText: "Shop the latest in gaming",
+            },
+            {
+              title: "Toys for all ages",
+              categoryNames: ["Toys", "Baby Products"],
+              footerText: "See all",
+            },
+            {
+              title: "Deals on top categories",
+              categoryNames: ["Books", "Beauty", "Computers"],
+              footerText: "Discover more",
+            },
+          ]}
+        />
 
-          <TopPicksRow
-            title="Top picks for Canada"
-            items={bestSellers.slice(0, 12)}
-          />
-        </>
-      )}
+        <TopPicksRow
+          title="Top picks for Canada"
+          items={bestSellers.slice(0, 12)}
+        />
+      </>
+    )}
 
-      {currentMode === "auction" && <AuctionHome />}
+    {/* ================== AUCTION MODE ================== */}
+   {currentMode === "auction" && (
+  <div className="space-y-12">
+    <CategoryGrid
+      title="Browse Live Auctions"
+      categories={categories}
+    />
 
-      <SignInCTA isLoggedIn={isLoggedIn} />
-    </main>
-  );
+    <AuctionRow
+      title="⏳ Ending Soon"
+      auctions={endingSoon}
+    />
+
+    <AuctionRow
+      title="🔥 Hot Auctions"
+      auctions={hotAuctions}
+    />
+
+    <AuctionRow
+      title="🆕 Newly Listed"
+      auctions={newAuctions}
+    />
+  </div>
+)}
+
+
+
+    <SignInCTA isLoggedIn={isLoggedIn} />
+  </main>
+);
+
 };
 
 export default HomePage;

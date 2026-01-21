@@ -3,11 +3,20 @@ import { useParams } from "react-router-dom";
 import Breadcrumbs from "../components/home/amazon/Breadcrumbs";
 import StarRating from "../components/home/amazon/StarRating";
 import { fetchProductById } from ".././services/productService";
+import { addToCart } from "../services/cartService";
+
+type ProductImage = {
+  url: string;
+};
 
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+
+
 
   useEffect(() => {
     if (!id) return;
@@ -33,27 +42,61 @@ const ProductDetailsPage: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 bg-white p-6">
 
-  {/* LEFT — IMAGE GALLERY */}
-  <div className="lg:col-span-4 flex gap-3">
-    {/* thumbnails */}
-    <div className="flex flex-col gap-2">
-      {[product.image_url].map((img: string, i: number) => (
-        <img
+    {/* LEFT — MODERN IMAGE GALLERY */}
+<div className="lg:col-span-4">
+  <div className="bg-white rounded-xl p-4 shadow-sm">
+
+    {/* MAIN IMAGE */}
+    <div className="relative group bg-gray-50 rounded-lg h-[420px] overflow-hidden flex items-center justify-center">
+  <img
+    src={product.images?.[activeImage]?.url || "/placeholder.png"}
+    alt={product.title}
+    className="
+      max-h-full
+      max-w-full
+      object-contain
+      transition-transform duration-300
+      group-hover:scale-105
+    "
+  />
+
+  {/* hover hint */}
+  <div className="absolute bottom-3 right-3 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+    Hover to zoom
+  </div>
+</div>
+
+
+    {/* THUMBNAIL STRIP */}
+    <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+      {(product.images?.length
+        ? product.images
+        : [{ url: "/placeholder.png" }]
+      ).map((img: ProductImage, i: any) => (
+        <button
           key={i}
-          src={img}
-          className="w-14 h-14 border cursor-pointer object-contain"
-        />
+          onClick={() => setActiveImage(i)}
+          className={`flex-shrink-0 w-16 h-16 rounded-lg border bg-white flex items-center justify-center
+            transition
+            ${
+              activeImage === i
+                ? "border-orange-500 ring-2 ring-orange-200"
+                : "border-gray-200 hover:border-gray-400"
+            }
+          `}
+        >
+          <img
+            src={img.url}
+            className="object-contain max-h-14"
+          />
+        </button>
       ))}
     </div>
 
-    {/* main image */}
-    <div className="flex-1">
-      <img
-        src={product.image_url}
-        className="w-full object-contain hover:scale-105 transition-transform"
-      />
-    </div>
   </div>
+</div>
+
+
 
   {/* CENTER — PRODUCT INFO */}
   <div className="lg:col-span-5">
@@ -115,15 +158,33 @@ const ProductDetailsPage: React.FC = () => {
 
     <p className="text-green-700 mb-2">In Stock</p>
 
-    <select className="w-full border px-2 py-1 mb-3">
+    <select
+      className="w-full border px-2 py-1 mb-3"
+      value={quantity}
+      onChange={(e) => setQuantity(Number(e.target.value))}
+    >
       {[1, 2, 3, 4, 5].map((q) => (
-        <option key={q}>{q}</option>
+        <option key={q} value={q}>
+          {q}
+        </option>
       ))}
     </select>
 
-    <button className="w-full bg-[#FFD814] hover:bg-[#F7CA00] py-2 rounded-full mb-2">
+
+    <button
+      className="w-full bg-[#FFD814] hover:bg-[#F7CA00] py-2 rounded-full mb-2"
+      onClick={async () => {
+        try {
+          await addToCart(product.product_id, 1);
+          alert("Added to cart ✅");
+        } catch (err: any) {
+          alert(err.message || "Please sign in to add to cart");
+        }
+      }}
+    >
       Add to Cart
     </button>
+
 
     <button className="w-full bg-[#FFA41C] hover:bg-[#FA8900] py-2 rounded-full">
       Buy Now

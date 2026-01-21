@@ -13,6 +13,8 @@ import CategoryPage from './pages/CategoryPage';
 import ProductsPage from './pages/ProductsPage';
 import AuctionDetailsPage from './pages/AuctionDetailsPage';
 import AuctionCategoryPage from './pages/AuctionCategoryPage';
+import AuctionsPage from './pages/AuctionsPage';
+import CartPage from './pages/CartPage';
 
 function App() {
   return (
@@ -33,6 +35,9 @@ function App() {
               <Route path="/category/:name" element={<CategoryPage />} />
               <Route path="/auction/:id" element={<AuctionDetailsPage />} />
               <Route path="/auctions/category/:id" element={<AuctionCategoryPage/>}/>
+              <Route path="/auctions" element={<AuctionsPage />} />
+              <Route path="/cart" element={<CartPage />} />
+
 
             </Routes>
           </main>

@@ -148,9 +148,16 @@ export async function getAuctionByProductId(productId: string | number) {
 }
 
 export async function fetchProductById(id?: string) {
+  if (!id) return null;
+
   const { data, error } = await supabase
     .from("product")
-    .select("*")
+    .select(`
+      *,
+      images:product_images (
+        url
+      )
+    `)
     .eq("product_id", id)
     .single();
 

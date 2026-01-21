@@ -1,5 +1,8 @@
 // types.ts — Clean version that matches real Supabase response
 
+
+
+
 export interface AuctionItem {
   id: string;
   title: string;

@@ -33,7 +33,6 @@ const ProductsPage: React.FC = () => {
         const res = await fetchAuctions({
           category,
           search,
-          minRating,
           minPrice: price.min,
           maxPrice: price.max,
           sort,
@@ -119,7 +118,7 @@ const ProductsPage: React.FC = () => {
                     navigate(
                       currentMode === "auction"
                         ? `/auction/${item.id}`
-                        : `/product/${item.id}`
+                        : `/product/${item.product_id}`
                     )
                   }
                   className="h-[220px] bg-gray-100 flex items-center justify-center mb-2 cursor-pointer overflow-hidden"
