@@ -100,7 +100,7 @@ const ProductDetailsPage: React.FC = () => {
   };
 
   return (
-    <main className="bg-[#EAEDED] min-h-screen">
+    <main className="bg-[#EAEDED] min-h-screen mt-25">
       <div className="max-w-[1400px] mx-auto px-4 py-4">
         <Breadcrumbs category={product.category} />
 

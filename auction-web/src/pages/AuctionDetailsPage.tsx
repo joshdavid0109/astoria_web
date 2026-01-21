@@ -83,7 +83,7 @@ const AuctionDetailsPage = () => {
     auction.product?.images?.[0]?.url || "/placeholder.png";
 
   return (
-    <main className="bg-[#EAEDED] min-h-screen">
+    <main className="bg-[#EAEDED] min-h-screen mt-25">
       <div className="max-w-[1400px] mx-auto px-4 py-4">
         <Breadcrumbs category={auction.product?.category} />
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import CartModal from "./CartModal";
 import { useEffect, useRef } from "react";
@@ -22,6 +22,15 @@ const Header: React.FC = () => {
   const [showCart, setShowCart] = useState(false);
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  const isActive = (path: string) => {
+    if (path === "/") return pathname === "/";
+    return pathname.startsWith(path);
+  };
+
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -81,7 +90,7 @@ const Header: React.FC = () => {
             {/* LOGO */}
             <button
               onClick={() => navigate("/")}
-              className="hover:outline hover:outline-1 hover:outline-white px-2 py-1"
+              className=" px-2 py-1 cursor-pointer"
             >
               <img
                 src="https://tkilxxlwkhlexitzyqiu.supabase.co/storage/v1/object/public/icons/full_astoria-whitenobg.png"
@@ -173,19 +182,45 @@ const Header: React.FC = () => {
       <div className="bg-[#232f3e] text-white text-sm">
         <div className="max-w-[1500px] mx-auto px-4">
           <div className="flex items-center h-[40px] gap-6">
-            <button 
-              onClick={() => navigate("/")}
-              className="font-semibold hover:underline">All</button>
             <button
-                onClick={() => navigate("/todays-deals")}
-                className="hover:underline">Today's Deals</button>
-            <button 
-                onClick={() => navigate("/categories")}
-                className="hover:underline">Categories</button>
-            <button 
-              onClick={() => navigate("/best-sellers")}
-              className="hover:underline">Best Sellers</button>
-            <button className="hover:underline">New Arrivals</button>
+              onClick={() => navigate("/")}
+              className={`font-semibold px-2 py-1 border-b-2 ${
+                isActive("/")
+                  ? "border-white"
+                  : "border-transparent hover:border-white/50"
+              }`}
+            >
+              All
+            </button>
+
+             <button
+              onClick={() => navigate("/todays-deals")}
+              className={`font-semibold px-2 py-1 border-b-2 ${
+                isActive("/todays-deals")
+                  ? "border-white"
+                  : "border-transparent hover:border-white/50"
+              }`}
+            >Today's Deals</button>
+             <button
+              onClick={() => navigate("/categories")}
+              className={`font-semibold px-2 py-1 border-b-2 ${
+                isActive("/categories")
+                  ? "border-white"
+                  : "border-transparent hover:border-white/50"
+              }`}
+            >
+                  Categories</button>
+             <button
+                onClick={() => navigate("/best-sellers")}
+                className={`font-semibold px-2 py-1 border-b-2 ${
+                  isActive("/best-sellers")
+                    ? "border-white"
+                    : "border-transparent hover:border-white/50"
+                }`}
+              >
+                Best Sellers</button>
+            <button className="hover:underline">
+              New Arrivals</button>
 
             {/* MODE SWITCH */}
             <div className="ml-auto flex gap-2">

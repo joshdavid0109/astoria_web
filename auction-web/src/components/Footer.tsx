@@ -15,52 +15,59 @@ const Footer: React.FC = () => {
       <div className="max-w-[1500px] mx-auto px-6 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           
-          {/* Column 1 */}
-          <div>
-            <h4 className="font-bold mb-3 text-white">Get to Know Us</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li className="hover:underline cursor-pointer">About Astoria</li>
-              <li className="hover:underline cursor-pointer">Careers</li>
-              <li className="hover:underline cursor-pointer">Press Releases</li>
-              <li className="hover:underline cursor-pointer">Investor Relations</li>
-            </ul>
+          {/* LEFT STACK */}
+          <div className="space-y-8">
+            {/* Column 1 */}
+            <div>
+              <h4 className="font-bold mb-3 text-white">Get to Know Us</h4>
+              <ul className="space-y-2 text-gray-300">
+                <li>About Astoria</li>
+                <li>Careers</li>
+                <li>Press Releases</li>
+                <li>Investor Relations</li>
+              </ul>
+            </div>
+
+            {/* Column 3 */}
+            <div>
+              <h4 className="font-bold mb-3 text-white">Astoria Payment Products</h4>
+              <ul className="space-y-2 text-gray-300">
+                <li>Astoria Wallet</li>
+                <li>Gift Cards</li>
+                <li>Currency Converter</li>
+                <li>Shipping Rates</li>
+              </ul>
+            </div>
           </div>
 
-          {/* Column 2 */}
-          <div>
-            <h4 className="font-bold mb-3 text-white">Make Money with Us</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li className="hover:underline cursor-pointer">Sell on Astoria</li>
-              <li className="hover:underline cursor-pointer">Sell Your Services</li>
-              <li className="hover:underline cursor-pointer">Become an Affiliate</li>
-              <li className="hover:underline cursor-pointer">Advertise Your Products</li>
-            </ul>
-          </div>
+          {/* RIGHT STACK */}
+          <div className="space-y-8">
+            {/* Column 2 */}
+            <div>
+              <h4 className="font-bold mb-3 text-white">Make Money with Us</h4>
+              <ul className="space-y-2 text-gray-300">
+                <li>Sell on Astoria</li>
+                <li>Sell Your Services</li>
+                <li>Become an Affiliate</li>
+                <li>Advertise Your Products</li>
+              </ul>
+            </div>
 
-          {/* Column 3 */}
-          <div>
-            <h4 className="font-bold mb-3 text-white">Astoria Payment Products</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li className="hover:underline cursor-pointer">Astoria Wallet</li>
-              <li className="hover:underline cursor-pointer">Gift Cards</li>
-              <li className="hover:underline cursor-pointer">Currency Converter</li>
-              <li className="hover:underline cursor-pointer">Shipping Rates</li>
-            </ul>
-          </div>
-
-          {/* Column 4 */}
-          <div>
-            <h4 className="font-bold mb-3 text-white">Let Us Help You</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li className="hover:underline cursor-pointer">Your Account</li>
-              <li className="hover:underline cursor-pointer">Your Orders</li>
-              <li className="hover:underline cursor-pointer">Shipping & Delivery</li>
-              <li className="hover:underline cursor-pointer">Returns & Replacements</li>
-              <li className="hover:underline cursor-pointer">Help</li>
-            </ul>
+            {/* Column 4 */}
+            <div>
+              <h4 className="font-bold mb-3 text-white">Let Us Help You</h4>
+              <ul className="space-y-2 text-gray-300">
+                <li>Your Account</li>
+                <li>Your Orders</li>
+                <li>Shipping & Delivery</li>
+                <li>Returns & Replacements</li>
+                <li>Help</li>
+              </ul>
+            </div>
           </div>
 
         </div>
+
       </div>
 
       {/* Divider */}

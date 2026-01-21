@@ -72,7 +72,7 @@ const CartPage: React.FC = () => {
   /* ================= RENDER ================= */
 
   return (
-    <main className="bg-[#EAEDED] min-h-screen">
+    <main className="bg-[#EAEDED] min-h-screen mt-25">
       <div className="max-w-[1200px] mx-auto px-4 py-6">
         {/* PAGE TITLE */}
         <h1 className="text-2xl font-semibold mb-6">
