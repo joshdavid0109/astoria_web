@@ -51,17 +51,17 @@ const Header: React.FC = () => {
   }, []);
 
 
-  const handleSearch = () => {
-    if (!searchQuery.trim()) return;
+    const handleSearch = () => {
+      if (!searchQuery.trim()) return;
 
-    const q = encodeURIComponent(searchQuery.trim());
+      const q = encodeURIComponent(searchQuery.trim());
 
-    if (currentMode === "auction") {
-      navigate(`/auctions?search=${q}`);
-    } else {
-      navigate(`/products?search=${q}`);
-    }
-  };
+      if (currentMode === "auction") {
+        navigate(`/auctions?search=${q}`);
+      } else {
+        navigate(`/products?search=${q}`);
+      }
+    };
 
     
 
@@ -92,7 +92,7 @@ const Header: React.FC = () => {
 
             {/* SEARCH */}
             <div className="flex flex-1 justify-center">
-              <div className="flex w-full max-w-[720px]">              
+              <div className="flex w-full max-w-[720px] bg-[#bababa] rounded">              
                  <input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -100,11 +100,11 @@ const Header: React.FC = () => {
                       if (e.key === "Enter") handleSearch();
                     }}
                     placeholder="Search Astoria"
-                    className="flex-1 h-[40px] px-3 text-white text-sm focus:outline-none"
+                    className="flex-1 h-[40px] px-3 text-black text-sm focus:outline-none"
                   />
                 <button
                   onClick={handleSearch}
-                  className="w-[45px] bg-[#febd69] hover:bg-[#f3a847] flex items-center justify-center"
+                  className="w-[45px] bg-[#febd69] hover:bg-[#f3a847] rounded flex items-center justify-center"
                 >
                   <Search className="w-5 h-5 text-black" />
                 </button>

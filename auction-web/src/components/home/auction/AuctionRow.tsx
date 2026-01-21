@@ -39,7 +39,7 @@ const AuctionRow = ({
 
 
   return (
-    <section className="bg-white max-w-[1500px] mx-auto p-5 px-4 mt-10">
+    <section className="bg-white max-w-[1470px] mx-auto p-5 px- mt-">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ const AuctionRow = ({
             className="
               min-w-[220px]
               cursor-pointer
-              border rounded-lg
+              rounded-lg
               p-3
               bg-white
               hover:shadow-md transition
