@@ -15,6 +15,9 @@ import AuctionDetailsPage from './pages/AuctionDetailsPage';
 import AuctionCategoryPage from './pages/AuctionCategoryPage';
 import AuctionsPage from './pages/AuctionsPage';
 import CartPage from './pages/CartPage';
+import TodaysDealsPage from './pages/TodaysDealsPage';
+import BestSellersPage from './pages/BestSellersPage';
+import CategoriesPage from './pages/CategoriesPage';
 
 function App() {
   return (
@@ -37,6 +40,9 @@ function App() {
               <Route path="/auctions/category/:id" element={<AuctionCategoryPage/>}/>
               <Route path="/auctions" element={<AuctionsPage />} />
               <Route path="/cart" element={<CartPage />} />
+              <Route path="todays-deals" element={<TodaysDealsPage/> }/>
+              <Route path="best-sellers" element={<BestSellersPage />} />
+              <Route path="/categories" element={<CategoriesPage />} />
 
 
             </Routes>

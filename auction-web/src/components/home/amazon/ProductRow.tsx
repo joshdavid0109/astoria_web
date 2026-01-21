@@ -5,7 +5,7 @@ import StarRating from "./StarRating";
 interface ProductRowProps {
   title: string;
   items: any[];
-  type: "flash" | "bestseller";
+  type: "flash" | "bestseller" | "new";
 }
 
 const ProductRow: React.FC<ProductRowProps> = ({ title, items, type }) => {

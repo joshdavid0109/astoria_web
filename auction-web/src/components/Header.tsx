@@ -173,9 +173,15 @@ const Header: React.FC = () => {
         <div className="max-w-[1500px] mx-auto px-4">
           <div className="flex items-center h-[40px] gap-6">
             <button className="font-semibold hover:underline">All</button>
-            <button className="hover:underline">Today's Deals</button>
-            <button className="hover:underline">Categories</button>
-            <button className="hover:underline">Best Sellers</button>
+            <button
+                onClick={() => navigate("/todays-deals")}
+                className="hover:underline">Today's Deals</button>
+            <button 
+                onClick={() => navigate("/categories")}
+                className="hover:underline">Categories</button>
+            <button 
+              onClick={() => navigate("/best-sellers")}
+              className="hover:underline">Best Sellers</button>
             <button className="hover:underline">New Arrivals</button>
 
             {/* MODE SWITCH */}
