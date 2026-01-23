@@ -69,20 +69,16 @@ export async function fetchEndingSoonAuctions(limit = 10): Promise<AuctionRow[]>
   return data || [];
 }
 
-export async function fetchFlashDeals(
-  limit = 12
-): Promise<(FlashDealRow & {
-  product?: ProductRow & { images?: { url: string }[] }
-})[]> {
+export async function fetchFlashDeals(limit = 12) {
   const { data, error } = await supabase
     .from("flash_deals")
     .select(`
       *,
       product:product_id (
         *,
-        images:product_images (
-          url
-        )
+        avg_rating,
+        review_count,
+        images:product_images ( url )
       )
     `)
     .order("discount_percent", { ascending: false })
@@ -95,6 +91,7 @@ export async function fetchFlashDeals(
 
   return data || [];
 }
+
 
 
 

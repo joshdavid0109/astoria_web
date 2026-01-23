@@ -59,6 +59,74 @@ console.log("SUPABASE USER:", user);
   if (error) throw error;
 }
 
+/* ================= DELETE CART ITEM ================= */
+export async function deleteCartItem(cartId: number) {
+  const { error } = await supabase
+    .from("cart")
+    .delete()
+    .eq("cart_id", cartId);
+
+  if (error) throw error;
+}
+
+ /* ================= DELETE BID + UPDATE AUCTION PRICE ================= */
+/* ================= DELETE BID + RETURN UPDATED PRICE ================= */
+export async function deleteBid(bidId: number) {
+  /* 1️⃣ Get bid info */
+  const { data: bid, error: bidError } = await supabase
+    .from("bid")
+    .select("bid_id, auction_id")
+    .eq("bid_id", bidId)
+    .single();
+
+  if (bidError || !bid) throw bidError;
+
+  const auctionId = bid.auction_id;
+
+  /* 2️⃣ Delete bid */
+  const { error: deleteError } = await supabase
+    .from("bid")
+    .delete()
+    .eq("bid_id", bidId);
+
+  if (deleteError) throw deleteError;
+
+  /* 3️⃣ Get highest remaining bid */
+  const { data: highestBid } = await supabase
+    .from("bid")
+    .select("bid_amount")
+    .eq("auction_id", auctionId)
+    .order("bid_amount", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let newPrice: number;
+
+  if (highestBid) {
+    newPrice = highestBid.bid_amount;
+  } else {
+    const { data: auction } = await supabase
+      .from("auction")
+      .select("start_price")
+      .eq("auction_id", auctionId)
+      .single();
+
+    newPrice = auction?.start_price ?? 0;
+  }
+
+  /* 4️⃣ Update auction price */
+  await supabase
+    .from("auction")
+    .update({ current_price: newPrice })
+    .eq("auction_id", auctionId);
+
+  /* 🔑 Return data for UI */
+  return {
+    auctionId,
+    newPrice,
+  };
+}
+
 
 export async function fetchCartForPage() {
   const {

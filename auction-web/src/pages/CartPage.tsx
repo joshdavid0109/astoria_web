@@ -4,6 +4,8 @@ import { useAppContext } from "../context/AppContext";
 import {
   fetchCartForPage,
   fetchBidsForPage,
+  deleteBid,
+  deleteCartItem
 } from "../services/cartService";
 import BidHistoryDropdown from "../components/home/auction/BidHistoryDropdown";
 
@@ -68,6 +70,49 @@ const CartPage: React.FC = () => {
     (sum, i) => sum + i.quantity * (i.product?.price || 0),
     0
   );
+
+  async function handleDeleteCart(cartId: number) {
+    try {
+      await deleteCartItem(cartId);
+      setCartItems((prev) =>
+        prev.filter((item) => item.cart_id !== cartId)
+      );
+    } catch (err: any) {
+      alert(err.message || "Failed to remove item");
+    }
+  }
+
+  async function handleDeleteBid(bidId: number) {
+    try {
+      const result = await deleteBid(bidId);
+
+      setBidItems((prev) =>
+        prev.filter((bid) => bid.bid_id !== bidId)
+      );
+
+      // 🔑 Update auction price in state
+      if (result) {
+        setBidItems((prev) =>
+          prev.map((bid) =>
+            bid.auction?.auction_id === result.auctionId
+              ? {
+                  ...bid,
+                  auction: {
+                    ...bid.auction,
+                    current_price: result.newPrice,
+                  },
+                }
+              : bid
+          )
+        );
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to delete bid");
+    }
+  }
+
+
+
 
   /* ================= RENDER ================= */
 
@@ -145,6 +190,13 @@ const CartPage: React.FC = () => {
                         <div className="text-sm text-gray-600 mt-1">
                           Quantity: {item.quantity}
                         </div>
+
+                         <button
+                            onClick={() => handleDeleteCart(item.cart_id)}
+                            className="text-sm text-red-600 hover:underline mt-2"
+                          >
+                            Remove
+                        </button>
                       </div>
 
                       <div className="font-semibold">
@@ -189,7 +241,10 @@ const CartPage: React.FC = () => {
                             </div>
 
                             {/* DROPDOWN: BID HISTORY */}
-                            <BidHistoryDropdown bids={bids} />
+                            <BidHistoryDropdown 
+                              bids={bids} 
+                              onDeleteBid={handleDeleteBid}
+                            />
                         </div>
                         );
                     })}
