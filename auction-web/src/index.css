@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+:root {
+  --mobile-header-height: 112px; /* header + subnav */
+  --mobile-action-height: 120px; /* Place Bid */
+}

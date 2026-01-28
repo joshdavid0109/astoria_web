@@ -7,25 +7,80 @@ interface Props {
 
 const Filters: React.FC<Props> = ({ setMinRating, setPrice }) => {
   return (
-    <aside className="w-[260px] bg-white border border-gray-300 p-4 text-sm">
-      <h3 className="font-bold mb-3">Customer Reviews</h3>
-      {[4, 3, 2].map((r) => (
-        <button
-          key={r}
-          onClick={() => setMinRating(r)}
-          className="flex items-center gap-1 hover:text-orange-600 mb-2"
-        >
-          <StarRating rating={r} /> & Up
-        </button>
-      ))}
+    <aside
+      className="
+        bg-white
+        border border-gray-300
+        rounded-md
+        p-4
+        text-sm
+        w-full
+        md:w-[260px]
+      "
+    >
+      {/* ================= RATING ================= */}
+      <div>
+        <h3 className="font-semibold mb-3 text-base md:text-sm">
+          Customer Reviews
+        </h3>
 
-      <h3 className="font-bold mt-4 mb-2">Price</h3>
-      <ul className="space-y-1">
-        <li onClick={() => setPrice(undefined, 25)} className="cursor-pointer hover:underline">Under $25</li>
-        <li onClick={() => setPrice(25, 50)} className="cursor-pointer hover:underline">$25 to $50</li>
-        <li onClick={() => setPrice(50, 100)} className="cursor-pointer hover:underline">$50 to $100</li>
-        <li onClick={() => setPrice(100)} className="cursor-pointer hover:underline">$100 & Above</li>
-      </ul>
+        <div className="space-y-2">
+          {[4, 3, 2].map((r) => (
+            <button
+              key={r}
+              onClick={() => setMinRating(r)}
+              className="
+                flex items-center gap-2
+                w-full
+                px-2 py-2
+                rounded
+                hover:bg-gray-100
+                transition
+              "
+            >
+              <StarRating rating={r} />
+              <span>& Up</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ================= PRICE ================= */}
+      <div className="mt-6">
+        <h3 className="font-semibold mb-3 text-base md:text-sm">
+          Price
+        </h3>
+
+        <div className="space-y-2">
+          <button
+            onClick={() => setPrice(undefined, 25)}
+            className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 transition"
+          >
+            Under $25
+          </button>
+
+          <button
+            onClick={() => setPrice(25, 50)}
+            className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 transition"
+          >
+            $25 to $50
+          </button>
+
+          <button
+            onClick={() => setPrice(50, 100)}
+            className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 transition"
+          >
+            $50 to $100
+          </button>
+
+          <button
+            onClick={() => setPrice(100)}
+            className="w-full text-left px-2 py-2 rounded hover:bg-gray-100 transition"
+          >
+            $100 & Above
+          </button>
+        </div>
+      </div>
     </aside>
   );
 };

@@ -27,3 +27,7 @@
 .product-image-wrapper:hover .product-image {
   transform: scale(1.08);
 }
+
+:root {
+  --mobile-action-height: 96px; /* matches BidBox height */
+}

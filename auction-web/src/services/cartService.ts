@@ -69,7 +69,7 @@ export async function deleteCartItem(cartId: number) {
   if (error) throw error;
 }
 
- /* ================= DELETE BID + UPDATE AUCTION PRICE ================= */
+
 /* ================= DELETE BID + RETURN UPDATED PRICE ================= */
 export async function deleteBid(bidId: number) {
   /* 1️⃣ Get bid info */

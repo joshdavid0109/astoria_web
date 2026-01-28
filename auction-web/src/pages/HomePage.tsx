@@ -110,7 +110,7 @@ const HomePage: React.FC = () => {
     Render
   ------------------------------------------ */
   return (
-  <main className="bg-[#EAEDED] min-h-screen">
+<main className="bg-[#EAEDED] min-h-screen pt-[20px]">
     <Hero banners={banners} />
 
     {/* ================== MARKETPLACE MODE ================== */}

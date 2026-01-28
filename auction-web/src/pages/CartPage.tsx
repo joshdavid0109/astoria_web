@@ -178,14 +178,23 @@ const CartPage: React.FC = () => {
                           item.product?.images?.[0]?.url ||
                           "/placeholder.png"
                         }
-                        className="w-24 h-24 object-contain"
+                        className="w-24 h-24 object-contain cursor-pointer"
                         alt={item.product?.title}
+                        onClick={() =>
+                          navigate(`/product/${item.product?.product_id}`)
+                        }
                       />
 
                       <div className="flex-1">
-                        <div className="font-medium">
+                        <div
+                          className="font-medium cursor-pointer hover:underline"
+                          onClick={() =>
+                            navigate(`/product/${item.product?.product_id}`)
+                          }
+                        >
                           {item.product?.title}
                         </div>
+
 
                         <div className="text-sm text-gray-600 mt-1">
                           Quantity: {item.quantity}
@@ -218,14 +227,24 @@ const CartPage: React.FC = () => {
                             {/* HEADER */}
                             <div className="flex gap-4 items-start">
                             <img
-                                src={auction.product?.images?.[0]?.url || "/placeholder.png"}
-                                className="w-24 h-24 object-contain rounded-lg bg-gray-50"
+                              src={auction.product?.images?.[0]?.url || "/placeholder.png"}
+                              className="w-24 h-24 object-contain rounded-lg bg-gray-50 cursor-pointer"
+                              onClick={() => {
+                                  window.dispatchEvent(new Event("hide-header"));
+                                  navigate(`/auction/${auction.auction_id}`);
+                                }
+                              }
                             />
 
                             <div className="flex-1">
-                                <h3 className="font-semibold">
+                              <h3
+                                className="font-semibold cursor-pointer hover:underline"
+                                onClick={() =>
+                                  navigate(`/auction/${auction.auction_id}`)
+                                }
+                              >
                                 {auction.product?.title}
-                                </h3>
+                              </h3>
 
                                 <div className="text-sm text-gray-600 mt-1">
                                 Highest bid:{" "}

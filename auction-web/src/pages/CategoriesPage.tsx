@@ -22,7 +22,7 @@ const CategoriesPage = () => {
   };
 
   return (
-    <main className="max-w-[1500px] mx-auto px-4 py-10">
+    <main className="max-w-[1500px] mx-auto px-4 py-10 mt-20">
       <h1 className="text-2xl font-semibold mb-8">
         Shop by Category
       </h1>
