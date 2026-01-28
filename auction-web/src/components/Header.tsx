@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Search,
   ShoppingCart,
@@ -34,8 +34,6 @@ const Header: React.FC = () => {
   const [isDesktop, setIsDesktop] = useState(
   typeof window !== "undefined" ? window.innerWidth >= 768 : false
   );
-  const [searchParams] = useSearchParams();
-  const currentSearch = searchParams.get("search");
 
 
   useEffect(() => {

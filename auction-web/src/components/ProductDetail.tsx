@@ -4,10 +4,8 @@ import {
   Clock,
   Minus,
   Plus,
-  Users,
   X,
   Check,
-  Shield,
   Star,
 } from "lucide-react";
 import type { AuctionItem } from "../types/types";
@@ -21,7 +19,6 @@ interface ProductDetailProps {
 
 const ProductDetail: React.FC<ProductDetailProps> = ({
   item,
-  onBack,
   isInWatchList,
   onToggleWatchList,
 }) => {
