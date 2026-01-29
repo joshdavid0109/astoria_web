@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  Search,
-  ShoppingCart,
-  User,
-  Menu,
-  X,
-} from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X } from "lucide-react";
 
 import { useAppContext } from "../context/AppContext";
 import CartModal from "./CartModal";
@@ -28,59 +22,54 @@ const Header: React.FC = () => {
 
   /* ================= STATE ================= */
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileVisible, setMobileVisible] = useState(true);
-  const lastScrollY = useRef(window.scrollY);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   const [isDesktop, setIsDesktop] = useState(
-  typeof window !== "undefined" ? window.innerWidth >= 768 : false
+    typeof window !== "undefined" ? window.innerWidth >= 768 : false
   );
 
-
+  /* ================= RESIZE ================= */
   useEffect(() => {
     const onResize = () => setIsDesktop(window.innerWidth >= 768);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-    /* ================= HELPERS ================= */
-    const isActive = (path: string) => {
-      if (path === "/") return pathname === "/";
-      return pathname.startsWith(path);
+  /* ================= HELPERS ================= */
+  const isActive = (path: string) => {
+    if (path === "/") return pathname === "/";
+    return pathname.startsWith(path);
   };
 
-  /* ================= MOBILE SCROLL HIDE ONLY ================= */
+  /* ================= SCROLL SHOW / HIDE ================= */
   useEffect(() => {
     lastScrollY.current = window.scrollY;
 
     const handleScroll = () => {
-      if (window.innerWidth >= 768) return; // 🚫 desktop unaffected
+      const currentY = window.scrollY;
 
-      const y = window.scrollY;
-
-      if (y < 80) {
-        setMobileVisible(true);
-      } else if (y > lastScrollY.current) {
-        setMobileVisible(false);
-      } else {
-        setMobileVisible(true);
+      // always show near top
+      if (currentY < 60) {
+        setHeaderVisible(true);
+        lastScrollY.current = currentY;
+        return;
       }
 
-      lastScrollY.current = y;
+      // scrolling down → hide
+      if (currentY > lastScrollY.current) {
+        setHeaderVisible(false);
+      }
+      // scrolling up → show
+      else {
+        setHeaderVisible(true);
+      }
+
+      lastScrollY.current = currentY;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-
-  useEffect(() => {
-    const hideHeaderNow = () => {
-      // mobile
-      setMobileVisible(false);
-    };
-
-    window.addEventListener("hide-header", hideHeaderNow);
-    return () => window.removeEventListener("hide-header", hideHeaderNow);
   }, []);
 
   /* ================= SEARCH ================= */
@@ -96,33 +85,29 @@ const Header: React.FC = () => {
     setMobileMenuOpen(false);
   };
 
-  const closeMobileMenu = () => {
-    setMobileMenuOpen(false);
-  };
-
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
     <>
       {/* =====================================================
-          SINGLE FIXED HEADER CONTAINER (IMPORTANT)
+          SINGLE FIXED HEADER CONTAINER
       ====================================================== */}
       <div
         className={`
           fixed top-0 left-0 w-full z-[99999]
           transition-transform duration-300
-          ${mobileVisible ? "translate-y-0" : "-translate-y-full"}
-          md:translate-y-0
+          ${headerVisible ? "translate-y-0" : "-translate-y-full"}
         `}
       >
         {/* ================= MOBILE HEADER ================= */}
         <header className="bg-[#131921] text-white md:hidden">
           {/* top row */}
           <div className="flex items-center justify-between px-4 h-[56px]">
-            <button onClick={() => {
-                  navigate("/")
-                  closeMobileMenu();
-                }
-              }
+            <button
+              onClick={() => {
+                navigate("/");
+                closeMobileMenu();
+              }}
             >
               <img
                 src="https://tkilxxlwkhlexitzyqiu.supabase.co/storage/v1/object/public/icons/full_astoria-whitenobg.png"
@@ -181,7 +166,7 @@ const Header: React.FC = () => {
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={() => {
-                    setCurrentMode("marketplace")
+                    setCurrentMode("marketplace");
                     closeMobileMenu();
                   }}
                   className={`flex-1 py-2 border ${
@@ -193,8 +178,8 @@ const Header: React.FC = () => {
                   Marketplace
                 </button>
                 <button
-                  onClick={() => { 
-                    setCurrentMode("auction")
+                  onClick={() => {
+                    setCurrentMode("auction");
                     closeMobileMenu();
                   }}
                   className={`flex-1 py-2 border ${
@@ -209,10 +194,13 @@ const Header: React.FC = () => {
 
               <div className="pt-3 border-t border-white/20 space-y-3">
                 <button
-                  onClick={isLoggedIn ? logout : () => {
-                      navigate("/login")
-                      closeMobileMenu();
-                    }
+                  onClick={
+                    isLoggedIn
+                      ? logout
+                      : () => {
+                          navigate("/login");
+                          closeMobileMenu();
+                        }
                   }
                   className="flex items-center gap-2"
                 >
@@ -222,10 +210,9 @@ const Header: React.FC = () => {
 
                 <button
                   onClick={() => {
-                      navigate("/cart")
-                      closeMobileMenu();
-                    }
-                  }
+                    navigate("/cart");
+                    closeMobileMenu();
+                  }}
                   className="flex items-center gap-2"
                 >
                   <ShoppingCart className="w-5 h-5" />
@@ -238,119 +225,122 @@ const Header: React.FC = () => {
 
         {/* ================= DESKTOP HEADER ================= */}
         {isDesktop && (
-        <header className="bg-[#131921] text-white  md:block z-[9999]">
-          <div className="max-w-[1500px] mx-auto px-4">
-            <div className="flex items-center h-[60px] gap-6">
-              <button onClick={() => navigate("/")}>
-                <img
-                  src="https://tkilxxlwkhlexitzyqiu.supabase.co/storage/v1/object/public/icons/full_astoria-whitenobg.png"
-                  className="h-20"
-                />
-              </button>
-
-              <div className="flex flex-1 justify-center">
-                <div className="flex w-full max-w-[720px] bg-[#bababa] rounded">
-                  <input
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && handleSearch()}
-                    className="flex-1 h-[40px] px-3 text-black text-sm outline-none"
-                  />
-                  <button
-                    onClick={handleSearch}
-                    className="w-[45px] bg-[#febd69] flex items-center justify-center"
-                  >
-                    <Search className="w-5 h-5 text-black" />
+          <>
+            <header className="bg-[#131921] text-white">
+              <div className="max-w-[1500px] mx-auto px-4">
+                <div className="flex items-center h-[60px] gap-6">
+                  <button onClick={() => navigate("/")}>
+                    <img
+                      src="https://tkilxxlwkhlexitzyqiu.supabase.co/storage/v1/object/public/icons/full_astoria-whitenobg.png"
+                      className="h-20"
+                    />
                   </button>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-8 text-sm ml-4">
-                <button
-                  onClick={isLoggedIn ? logout : () => navigate("/login")}
-                  className="flex items-center gap-2 px-2 py-1 hover:outline hover:outline-1"
-                >
-                  <User className="w-5 h-5" />
-                  <div>
-                    <div className="text-xs">
-                      {isLoggedIn ? "Hello" : "Hello, sign in"}
-                    </div>
-                    <div className="font-semibold">
-                      {isLoggedIn ? "Logout" : "Account"}
+                  <div className="flex flex-1 justify-center">
+                    <div className="flex w-full max-w-[720px] bg-[#bababa] rounded">
+                      <input
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        onKeyDown={e =>
+                          e.key === "Enter" && handleSearch()
+                        }
+                        className="flex-1 h-[40px] px-3 text-black text-sm outline-none"
+                      />
+                      <button
+                        onClick={handleSearch}
+                        className="w-[45px] bg-[#febd69] flex items-center justify-center"
+                      >
+                        <Search className="w-5 h-5 text-black" />
+                      </button>
                     </div>
                   </div>
-                </button>
 
-                <button
-                  onClick={() => navigate("/cart")}
-                  className="relative flex items-center gap-1 px-2 py-1 hover:outline hover:outline-1"
-                >
-                  <ShoppingCart className="w-6 h-6" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 left-4 bg-orange-500 text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {cartCount}
-                    </span>
-                  )}
-                  <span className="font-semibold">Cart</span>
-                </button>
+                  <div className="flex items-center gap-8 text-sm ml-4">
+                    <button
+                      onClick={
+                        isLoggedIn ? logout : () => navigate("/login")
+                      }
+                      className="flex items-center gap-2 px-2 py-1 hover:outline hover:outline-1"
+                    >
+                      <User className="w-5 h-5" />
+                      <div>
+                        <div className="text-xs">
+                          {isLoggedIn ? "Hello" : "Hello, sign in"}
+                        </div>
+                        <div className="font-semibold">
+                          {isLoggedIn ? "Logout" : "Account"}
+                        </div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => navigate("/cart")}
+                      className="relative flex items-center gap-1 px-2 py-1 hover:outline hover:outline-1"
+                    >
+                      <ShoppingCart className="w-6 h-6" />
+                      {cartCount > 0 && (
+                        <span className="absolute -top-1 left-4 bg-orange-500 text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                          {cartCount}
+                        </span>
+                      )}
+                      <span className="font-semibold">Cart</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            {/* ================= DESKTOP SUB NAV ================= */}
+            <div className="bg-[#232f3e] text-white text-sm">
+              <div className="max-w-[1500px] mx-auto px-4">
+                <div className="flex items-center h-[40px] gap-6">
+                  {[
+                    { label: "All", path: "/" },
+                    { label: "Today's Deals", path: "/todays-deals" },
+                    { label: "Categories", path: "/categories" },
+                    { label: "Best Sellers", path: "/best-sellers" },
+                  ].map(item => (
+                    <button
+                      key={item.path}
+                      onClick={() => navigate(item.path)}
+                      className={`font-semibold px-2 py-1 border-b-2 ${
+                        isActive(item.path)
+                          ? "border-white"
+                          : "border-transparent hover:border-white/50"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      onClick={() => setCurrentMode("marketplace")}
+                      className={`px-3 py-1 border ${
+                        currentMode === "marketplace"
+                          ? "bg-white text-black"
+                          : "border-white/30"
+                      }`}
+                    >
+                      Marketplace
+                    </button>
+                    <button
+                      onClick={() => setCurrentMode("auction")}
+                      className={`px-3 py-1 border ${
+                        currentMode === "auction"
+                          ? "bg-white text-black"
+                          : "border-white/30"
+                      }`}
+                    >
+                      Auction
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </header>
-        )}
-
-        {/* ================= DESKTOP SUB NAV ================= */}
-        {isDesktop && (
-        <div className="bg-[#232f3e] text-white text-sm  md:block">
-          <div className="max-w-[1500px] mx-auto px-4">
-            <div className="flex items-center h-[40px] gap-6">
-              {[
-                { label: "All", path: "/" },
-                { label: "Today's Deals", path: "/todays-deals" },
-                { label: "Categories", path: "/categories" },
-                { label: "Best Sellers", path: "/best-sellers" },
-              ].map(item => (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  className={`font-semibold px-2 py-1 border-b-2 ${
-                    isActive(item.path)
-                      ? "border-white"
-                      : "border-transparent hover:border-white/50"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-
-              <div className="ml-auto flex gap-2">
-                <button
-                  onClick={() => setCurrentMode("marketplace")}
-                  className={`px-3 py-1 border ${
-                    currentMode === "marketplace"
-                      ? "bg-white text-black"
-                      : "border-white/30"
-                  }`}
-                >
-                  Marketplace
-                </button>
-                <button
-                  onClick={() => setCurrentMode("auction")}
-                  className={`px-3 py-1 border ${
-                    currentMode === "auction"
-                      ? "bg-white text-black"
-                      : "border-white/30"
-                  }`}
-                >
-                  Auction
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+          </>
         )}
       </div>
-      
 
       <CartModal isOpen={false} onClose={() => {}} />
     </>
